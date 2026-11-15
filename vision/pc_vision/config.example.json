@@ -1,0 +1,19 @@
+{
+  "host": "",
+  "video_port": 9000,
+  "control_port": 9001,
+  "light_port": 9004,
+  "calibration_file": "calibration.json",
+  "reconnect_seconds": 2.0,
+  "fill_light": null,
+  "motion": {
+    "enabled": false,
+    "lead_ms": 180.0,
+    "latency_ms": 80.0,
+    "grasp_x": 160.0,
+    "grasp_y": 100.0,
+    "half_width": 105.0,
+    "half_height": 100.0,
+    "error_limit_px": 6.0
+  }
+}

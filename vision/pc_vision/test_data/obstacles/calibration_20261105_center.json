@@ -1,0 +1,164 @@
+{
+  "reference": "vehicle front edge to cylinder near wall, mm",
+  "camera": "center mounted; yaw0 assumed; cylinder50mm",
+  "calibration": {
+    "resolution": [
+      640,
+      480
+    ],
+    "distance_reference": "front_edge_to_near_wall",
+    "installation": "20261105_center_camera",
+    "anchors": [
+      {
+        "width_px": 32.0,
+        "gap_mm": 730.0
+      },
+      {
+        "width_px": 56.0,
+        "gap_mm": 400.0
+      },
+      {
+        "width_px": 105.0,
+        "gap_mm": 200.0
+      },
+      {
+        "width_px": 186.5,
+        "gap_mm": 100.0
+      }
+    ],
+    "empirical_K_mm_px": 24337.367767254545,
+    "range_offset_mm": -31.854580042285278,
+    "range_formula": "front_gap_mm = K / width_px + offset_mm; least-squares four-anchor fit",
+    "camera_body_right_mm": 0.0,
+    "diameter_mm": 50.0,
+    "principal_u_px": 319.5,
+    "camera_yaw_assumed_deg": 0.0,
+    "independently_validated": false,
+    "observation_min_width_px": 24.0,
+    "trigger_min_width_px": 24.0,
+    "max_front_gap_mm": 1200.0,
+    "small_silhouette_width_px": 50.0,
+    "calibrated_width_px": [
+      32.0,
+      186.5
+    ],
+    "floor_roi_top_px": 185,
+    "silhouette_top_px": 135,
+    "bottom_clipped_min_aspect": 0.75
+  },
+  "replay": [
+    {
+      "source": "vision/pc_vision/test_data/obstacles/20261105_115332_741164_99735_raw.png",
+      "sha256": "1a97875991006a010446634978c06f9cac235379481c8f0a7f2822681104dc1a",
+      "measured_front_gap_mm": 730,
+      "result": {
+        "bbox": [
+          297,
+          158,
+          33,
+          76
+        ],
+        "width_px": 32.0,
+        "center_u_px": 312.5,
+        "front_gap_mm": 728.7,
+        "body_right_mm": -10.9,
+        "bottom_clipped": false,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "SMALL_BASE",
+        "partial_top": false,
+        "contrast": 116.0
+      },
+      "error_mm": -1.3,
+      "confirmed": true,
+      "reportable": true,
+      "calibration_sample": true
+    },
+    {
+      "source": "vision/pc_vision/test_data/obstacles/20261105_115427_525552_100783_raw.png",
+      "sha256": "cdf42003d74ff2a81648a86eb4418149cd088628ac2feecc5e6cbc08bc0aacfa",
+      "measured_front_gap_mm": 400,
+      "result": {
+        "bbox": [
+          272,
+          188,
+          58,
+          127
+        ],
+        "width_px": 56.0,
+        "center_u_px": 300.5,
+        "front_gap_mm": 402.7,
+        "body_right_mm": -17.0,
+        "bottom_clipped": false,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "BASE",
+        "partial_top": false,
+        "contrast": 132.0
+      },
+      "error_mm": 2.7,
+      "confirmed": true,
+      "reportable": true,
+      "calibration_sample": true
+    },
+    {
+      "source": "vision/pc_vision/test_data/obstacles/20261105_115452_483446_101263_raw.png",
+      "sha256": "940178497b7e471169c8b85265032627adaba46271839ebe3a7db676413e52c1",
+      "measured_front_gap_mm": 200,
+      "result": {
+        "bbox": [
+          242,
+          235,
+          110,
+          245
+        ],
+        "width_px": 105.0,
+        "center_u_px": 296.0,
+        "front_gap_mm": 199.9,
+        "body_right_mm": -11.2,
+        "bottom_clipped": true,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "TOP",
+        "partial_top": false,
+        "contrast": 131.5
+      },
+      "error_mm": -0.1,
+      "confirmed": true,
+      "reportable": true,
+      "calibration_sample": true
+    },
+    {
+      "source": "vision/pc_vision/test_data/obstacles/20261105_115514_753976_101685_raw.png",
+      "sha256": "c95c48fd683cfde8f88b4261c27da115eda43b47956ecf7a4b162d6f7ebae894",
+      "measured_front_gap_mm": 100,
+      "result": {
+        "bbox": [
+          205,
+          299,
+          193,
+          181
+        ],
+        "width_px": 186.5,
+        "center_u_px": 300.5,
+        "front_gap_mm": 98.6,
+        "body_right_mm": -5.1,
+        "bottom_clipped": true,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "TOP",
+        "partial_top": false,
+        "contrast": 123.0
+      },
+      "error_mm": -1.4,
+      "confirmed": true,
+      "reportable": true,
+      "calibration_sample": true
+    }
+  ],
+  "note": "Four fitted training samples, not independent accuracy validation. Three frame identifiers are simulated for still-image protocol replay; no camera/serial opened."
+}

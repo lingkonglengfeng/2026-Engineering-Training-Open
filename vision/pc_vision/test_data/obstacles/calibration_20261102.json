@@ -1,0 +1,95 @@
+{
+  "reference": "vehicle front edge to near wall, mm",
+  "calibration": {
+    "resolution": [
+      640,
+      480
+    ],
+    "distance_reference": "front_edge_to_near_wall",
+    "anchors": [
+      {
+        "width_px": 27.0,
+        "gap_mm": 900.0
+      },
+      {
+        "width_px": 35.0,
+        "gap_mm": 700.0
+      },
+      {
+        "width_px": 78.0,
+        "gap_mm": 300.0
+      },
+      {
+        "width_px": 122.0,
+        "gap_mm": 200.0
+      }
+    ],
+    "empirical_K_mm_px": 24539.938195882678,
+    "range_offset_mm": -6.447329451456774,
+    "range_formula": "front_gap_mm = K / width_px + offset_mm; least-squares four-anchor fit",
+    "camera_body_right_mm": -100.0,
+    "diameter_mm": 50.0,
+    "principal_u_px": 319.5,
+    "camera_yaw_assumed_deg": 0.0,
+    "independently_validated": false,
+    "observation_min_width_px": 24.0,
+    "trigger_min_width_px": 24.0,
+    "max_front_gap_mm": 1200.0,
+    "small_silhouette_width_px": 50.0,
+    "calibrated_width_px": [
+      27.0,
+      122.0
+    ]
+  },
+  "replay": [
+    {
+      "source": "vision\\pc_vision\\test_data\\obstacles\\20261102_201735_251061_14424_raw.png",
+      "measured_front_gap_mm": 900,
+      "result": {
+        "bbox": [
+          361,
+          252,
+          27,
+          57
+        ],
+        "width_px": 27.0,
+        "center_u_px": 374.0,
+        "front_gap_mm": 902.4,
+        "body_right_mm": 0.9,
+        "bottom_clipped": false,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "SMALL_BASE",
+        "partial_top": false,
+        "contrast": 124.2
+      },
+      "calibration_sample": true
+    },
+    {
+      "source": "vision\\pc_vision\\test_data\\obstacles\\20261102_201826_485700_15357_raw.png",
+      "measured_front_gap_mm": 700,
+      "result": {
+        "bbox": [
+          324,
+          255,
+          35,
+          75
+        ],
+        "width_px": 35.0,
+        "center_u_px": 341.0,
+        "front_gap_mm": 694.7,
+        "body_right_mm": -69.3,
+        "bottom_clipped": false,
+        "side_clipped": false,
+        "range_state": "CALIBRATED_INTERVAL",
+        "extrapolated": false,
+        "rounding_evidence": "SMALL_BASE",
+        "partial_top": false,
+        "contrast": 143.0
+      },
+      "calibration_sample": true
+    }
+  ],
+  "independent_validation": false
+}

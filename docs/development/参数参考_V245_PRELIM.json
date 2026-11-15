@@ -1,0 +1,109 @@
+{
+  "description": "V245_PRELIM兼容参数参考；历史串口数据加代码默认值，非实时W25备份，不自动加载",
+  "source_log": "vision/pc_vision/logs/2026-10-30/serial/20261030_232630_144096_COM10_idle.log",
+  "source_timestamp": "2026-10-30T23:27:35+08:00",
+  "axes_deg": [
+    "lift5",
+    "reach6",
+    "dm"
+  ],
+  "servo_presets_deg": {
+    "open": 225,
+    "close": 308,
+    "table": [
+      19,
+      109,
+      199
+    ]
+  },
+  "ring_bases_deg": [
+    [
+      -1032.6204,
+      -545.2084,
+      41.3044
+    ],
+    [
+      -1032.6204,
+      -212.0919,
+      4.604
+    ],
+    [
+      -1032.6204,
+      -290.4869,
+      -39.5218
+    ]
+  ],
+  "rough_and_temp_shared_ring_deltas_deg": [
+    [
+      0,
+      5.9,
+      -1.7
+    ],
+    [
+      0,
+      0,
+      -1.2
+    ],
+    [
+      0,
+      -5.59,
+      -0.723
+    ]
+  ],
+  "w25_banks_8mb_hex": [
+    "0x7F8000",
+    "0x7F9000"
+  ],
+  "independent_disc_pose_storage": true,
+  "note": "圆环/舵机摘自10月30日初赛日志，四姿态是新功能默认值。设备已有有效保存值时优先使用设备值；PID/导航仍共用。",
+  "compatible_firmware": "V245_PRELIM",
+  "disc_pose_bases_deg": {
+    "wait": [
+      -562.5272,
+      -185.1581,
+      -2.0217
+    ],
+    "grab": [
+      -562.5272,
+      -287.4755,
+      -2.0217
+    ],
+    "tray": [
+      -405.2134,
+      1,
+      162.825
+    ],
+    "traypick": [
+      -480.5745,
+      -4,
+      162.825
+    ]
+  },
+  "disc_pose_deltas_deg": {
+    "wait": [
+      0,
+      0,
+      0
+    ],
+    "grab": [
+      0,
+      0,
+      0
+    ],
+    "tray": [
+      0,
+      0,
+      0
+    ],
+    "traypick": [
+      0,
+      0,
+      0
+    ]
+  },
+  "disc_pose_source": "V245 PRELIM代码默认值；未读取初赛四姿态Flash，无有效记录时采用零增量",
+  "w25_disc_pose_banks_8mb_hex": [
+    "0x7F2000",
+    "0x7F3000"
+  ]
+}

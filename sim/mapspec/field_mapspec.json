@@ -1,0 +1,208 @@
+{
+  "area_types": {
+    "start": [
+      [
+        2100,
+        2400,
+        0,
+        300
+      ],
+      [
+        2100,
+        2400,
+        2100,
+        2400
+      ]
+    ],
+    "work": [
+      [
+        1000,
+        1400,
+        1850,
+        2400
+      ],
+      [
+        1000,
+        1400,
+        0,
+        300
+      ],
+      [
+        0,
+        300,
+        850,
+        1550
+      ],
+      [
+        2100,
+        2400,
+        1000,
+        1400
+      ]
+    ]
+  },
+  "astar": {
+    "lane_cost_per_cell": 3,
+    "move_cost": 1,
+    "turn_cost": 120
+  },
+  "car_half_cells": 3,
+  "car_mm": 300,
+  "cell_mm": 50,
+  "executor": {
+    "strafe_max_cells": 3
+  },
+  "field_kind": {
+    "band_mm": 550,
+    "block_hi_mm": 1850,
+    "block_lo_mm": 550,
+    "cross_half_mm": 200,
+    "mid_mm": 1200,
+    "ring_drivable": true
+  },
+  "field_mm": 2400,
+  "format": "field-mapspec",
+  "generated_by": "tools/check_map.py",
+  "lanes_mm": {
+    "far": 2125,
+    "mid": 1200,
+    "near": 275
+  },
+  "note": "Geometry is the frozen project口径; cy increases DOWNWARD internally.",
+  "pads": [
+    [
+      1000,
+      1400,
+      2250,
+      2400
+    ],
+    [
+      1000,
+      1400,
+      0,
+      150
+    ],
+    [
+      0,
+      150,
+      1050,
+      1350
+    ],
+    [
+      2350,
+      2400,
+      1100,
+      1300
+    ]
+  ],
+  "size": 48,
+  "version": 1,
+  "waypoints_mm": {
+    "center": [
+      1200,
+      1200
+    ],
+    "exit1": [
+      2125,
+      450
+    ],
+    "exit2": [
+      2125,
+      1950
+    ],
+    "h1": [
+      2250,
+      150
+    ],
+    "h2": [
+      2250,
+      2250
+    ],
+    "qr": [
+      2125,
+      1200
+    ],
+    "raw": [
+      1200,
+      2050
+    ],
+    "rough": [
+      1200,
+      350
+    ],
+    "rough1": [
+      1050,
+      350
+    ],
+    "rough2": [
+      1200,
+      350
+    ],
+    "rough3": [
+      1350,
+      350
+    ],
+    "temp": [
+      350,
+      1200
+    ],
+    "temp1": [
+      350,
+      1350
+    ],
+    "temp2": [
+      350,
+      1200
+    ],
+    "temp3": [
+      350,
+      1050
+    ]
+  },
+  "zones": {
+    "1": {
+      "center_mm": [
+        2250,
+        150
+      ],
+      "exit_mm": [
+        2125,
+        450
+      ],
+      "nose_map": [
+        0,
+        1
+      ],
+      "rect_mm": [
+        2100,
+        2400,
+        0,
+        300
+      ]
+    },
+    "2": {
+      "center_mm": [
+        2250,
+        2250
+      ],
+      "exit_mm": [
+        2125,
+        1950
+      ],
+      "nose_map": [
+        0,
+        -1
+      ],
+      "rect_mm": [
+        2100,
+        2400,
+        2100,
+        2400
+      ]
+    },
+    "lane_x_mm": 2125,
+    "leave_mm": 300,
+    "left_action": "strafe_left",
+    "strafe_mm": 125
+  }
+}

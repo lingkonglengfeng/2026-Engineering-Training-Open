@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "samples": {
+    "1": [
+      [32.312, 47.297, 26.078],
+      [32.410, 47.031, 25.922],
+      [25.378, 47.984, 33.203],
+      [25.140, 47.719, 32.891],
+      [34.082, 43.969, 23.250],
+      [34.399, 43.188, 23.016]
+    ]
+  },
+  "measurement": "Median LAB in 7x7 patches after INTER_AREA resize from 480x360 to 320x240; centers rounded from source pixels using 2/3 scale",
+  "sources": [
+    {"photo": "red_20261028_164555_raw.png", "source_frame": "20261028_164555_541464_8480", "source_centers": [[165,147],[157,139]], "top_center_320": [110,98]},
+    {"photo": "red_20261028_164644_raw.png", "source_frame": "20261028_164644_413636_9539", "source_centers": [[276,210],[284,202]], "top_center_320": [184,140]},
+    {"photo": "red_20261029_012640_raw.png", "source_frame": "20261029_012640_038665_24766", "source_centers": [[115,191],[107,183]], "top_center_320": [76.667,127.333]}
+  ]
+}

@@ -1,0 +1,8 @@
+id: cam1_pc_bridge
+name: 工训CAM1电脑视觉桥接
+version: 1.3.6
+author: 凌空冷风
+icon: app.png
+desc: CAM1图传串口桥接、A18补光PWM与上位机亮度控制9004端口（物料25/圆盘60/圆环30）
+files:
+  - main.py

@@ -1,0 +1,58 @@
+"""Run the production QR/arrival adapter without unrelated legacy chassis mocks."""
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+from elftools.elf.elffile import ELFFile
+from unicorn import Uc, UC_ARCH_ARM, UC_MODE_THUMB, UC_MODE_MCLASS, UC_HOOK_CODE
+from unicorn.arm_const import UC_ARM_REG_SP, UC_ARM_REG_LR
+
+ROOT=Path(__file__).resolve().parents[2]
+source=(ROOT/'Core/Src/zdt_motor.c').read_text(encoding='utf-8')
+def function(signature):
+    start=source.index(signature+'\n{');end=source.index('{',start)+1;depth=1
+    while depth:
+        depth+=(source[end]=='{')-(source[end]=='}');end+=1
+    return source[start:end]
+
+with tempfile.TemporaryDirectory(prefix='qr-anchor-') as directory:
+    work=Path(directory);binary=work/'test.elf';linker=work/'test.ld'
+    signatures=('uint8_t ZDT_Match_GetQrTask(vision_qr_task_t *task)',
+                'static uint8_t ZDT_Qr_Start(uint8_t for_match)',
+                'static void ZDT_Qr_Cancel(void)','static void ZDT_Qr_Service(void)',
+                'static uint8_t ZDT_Qr_Command(const char *command)',
+                'static uint8_t ZDT_DepartureParallelStart(void)',
+                'static void ZDT_Match_Complete(uint8_t success, const char *reason)',
+                'static void ZDT_MaterialService(void)')
+    (work/'qr_application_under_test.inc').write_text('\n'.join(map(function,signatures)),encoding='utf-8')
+    syscalls=(ROOT/'tools/tests/test_arm_driver.c').read_text(encoding='utf-8')
+    syscalls=syscalls[syscalls.index('int _close('):syscalls.index('volatile unsigned int test_checks')]
+    (work/'main.c').write_text('#include <stdint.h>\n#include <sys/stat.h>\n#include <sys/types.h>\nvolatile uint32_t test_checks,test_failures,test_first_failure;\nvoid Test_QrApplication(void);\nint main(void){Test_QrApplication();return test_failures;}\n'+syscalls,encoding='utf-8')
+    linker.write_text('ENTRY(main)\nSECTIONS { . = 0x08000000; .text : { *(.text*) *(.rodata*) } .ARM.exidx : { *(.ARM.exidx*) } . = 0x20000000; .data : { *(.data*) } .bss : { *(.bss*) *(COMMON) } . = ALIGN(8); end = .; }\n')
+    includes=('Core/Inc','Drivers/STM32H7xx_HAL_Driver/Inc','Drivers/CMSIS/Device/ST/STM32H7xx/Include','Drivers/CMSIS/Include')
+    sources=('Core/Src/match_control.c','Core/Src/zone2_route.c','Core/Src/qr_scan.c','Core/Src/vision_qr.c','Core/Src/vision_mode_gate.c',
+             'Core/Src/vision_align.c','Core/Src/vision_yaw.c','Core/Src/vision_align_diag.c',
+             'Core/Src/screen_metrics.c','Core/Src/screen_protocol.c','tools/tests/test_qr_application.c')
+    subprocess.run([shutil.which('arm-none-eabi-gcc'),'-std=c99','-mcpu=cortex-m3','-mthumb','-O1',
+                    '-Wall','-Wextra','-Werror','-DSTM32H723xx','-DUSE_HAL_DRIVER','-DTEST_QR_ANCHOR_ONLY',
+                    '-I'+str(work),*['-I'+str(ROOT/p) for p in includes],'-ffunction-sections','-fdata-sections',
+                    str(work/'main.c'),*[str(ROOT/p) for p in sources],'-nostartfiles','--specs=nosys.specs',
+                    '-Wl,--gc-sections','-Wl,-T,'+str(linker),'-lm','-o',str(binary)],check=True)
+    emu=Uc(UC_ARCH_ARM,UC_MODE_THUMB|UC_MODE_MCLASS)
+    emu.mem_map(0x08000000,0x100000);emu.mem_map(0x20000000,0x100000)
+    with binary.open('rb') as stream:
+        elf=ELFFile(stream)
+        for segment in elf.iter_segments():
+            if segment['p_type']=='PT_LOAD' and segment['p_filesz']:
+                emu.mem_write(segment['p_vaddr'],segment.data())
+        symbols={s.name:s['st_value'] for s in elf.get_section_by_name('.symtab').iter_symbols()}
+        entry=elf['e_entry']
+    sentinel=0x080ff000;done=[]
+    def finish(cpu,address,size,user):done.append(True);cpu.emu_stop()
+    emu.hook_add(UC_HOOK_CODE,finish,begin=sentinel,end=sentinel)
+    emu.reg_write(UC_ARM_REG_SP,0x200ff000);emu.reg_write(UC_ARM_REG_LR,sentinel|1)
+    emu.emu_start(entry|1,sentinel+2,timeout=20_000_000,count=100_000_000)
+    def value(name):return int.from_bytes(emu.mem_read(symbols[name],4),'little')
+    print('QR production adapter: %d checks, %d failures; first line=%d; no hardware'%
+          (value('test_checks'),value('test_failures'),value('test_first_failure')))
+    if not done or value('test_failures') or not value('test_checks'):raise SystemExit('QR adapter failed')

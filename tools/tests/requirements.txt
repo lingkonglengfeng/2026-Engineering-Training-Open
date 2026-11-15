@@ -1,0 +1,3 @@
+# Cortex-M offline regression runners; no device connection.
+unicorn==2.1.4
+pyelftools==0.32

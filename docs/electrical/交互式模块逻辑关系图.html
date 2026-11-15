@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>智能搬运赛项 · 交互式模块逻辑关系图</title>
+<style>
+  :root{
+    --bg:#0e1319; --panel:#151c26; --line:#2a3542; --txt:#d8e0ea; --sub:#8b98a8;
+    --im:#4fc08d; --plan:#7d8aa0;
+    --c-isr:#5b9bd5; --c-drv:#4fc08d; --c-var:#e0b34d; --c-rtos:#b07fd8; --c-task:#4fc3c3; --c-sm:#93a1b5; --c-danger:#e06c6c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overflow:hidden;}
+  body{background:var(--bg); color:var(--txt); font:14px/1.6 "Microsoft YaHei",system-ui,sans-serif; display:flex; flex-direction:column;}
+
+  /* ===== 顶栏 ===== */
+  #topbar{background:var(--panel); border-bottom:1px solid var(--line); padding:8px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; z-index:5;}
+  #topbar h1{font-size:16px; font-weight:600; margin-right:6px;}
+  .chains{display:flex; gap:6px; flex-wrap:wrap;}
+  .chains button{background:#1d2836; color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:12.5px;}
+  .chains button:hover{border-color:var(--c-task);}
+  .chains button.on{background:#24405a; border-color:var(--c-isr);}
+  #filters{display:flex; gap:8px; margin-left:auto; align-items:center; font-size:12.5px;}
+  #filters label{cursor:pointer; user-select:none; display:flex; align-items:center; gap:3px;}
+  .sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  #topbar .btn{background:#1d2836;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12.5px;}
+
+  #main{flex:1; display:flex; min-height:0;}
+  #svgwrap{flex:1; position:relative; min-width:0;}
+  svg#cv{width:100%; height:100%; display:block; cursor:grab;}
+  svg#cv.dragging{cursor:grabbing;}
+  svg#cv.grabnode{cursor:move;}
+
+  /* ===== SVG 节点/边 ===== */
+  .band{fill:#121924; stroke:#1d2735;}
+  .bandtxt{fill:#5d6b7d; font-size:13px; font-weight:600; letter-spacing:2px;}
+  .edge{stroke:#41506020; stroke:#41505f; stroke-width:1.3; fill:none; opacity:.55;}
+  .edge.dash{stroke-dasharray:6 5;}
+  .edge.red{stroke:var(--c-danger);}
+  .edge.flow{stroke:#5aa7e0;}
+  .edge.hl{stroke:#ffd35c; stroke-width:2.4; opacity:1;}
+  .edge.dim{opacity:.06;}
+  .edgelbl{fill:#7d8b9c; font-size:11px; paint-order:stroke; stroke:#0e1319; stroke-width:3px;}
+  .edgelbl.hl{fill:#ffd35c;}
+  .node{cursor:pointer;}
+  .node rect{fill:#182130; stroke-width:1.6; rx:9;}
+  .node.dash rect{stroke-dasharray:5 4;}
+  .node text.t{fill:var(--txt); font-size:13.5px; font-weight:600; text-anchor:middle;}
+  .node text.s{fill:var(--sub); font-size:10.5px; text-anchor:middle;}
+  .node.dim{opacity:.13;}
+  .node.sel rect{stroke-width:2.6;}
+  .node.chain rect{stroke-width:2.6;}
+  .stnum{fill:#ffd35c; font-size:11px; font-weight:700; text-anchor:middle; paint-order:stroke; stroke:#0e1319; stroke-width:3px;}
+  .badgelbl{font-size:11px; text-anchor:middle; paint-order:stroke; stroke:#0e1319; stroke-width:3px; font-weight:600;}
+
+  /* ===== 侧栏 ===== */
+  #side{width:400px; background:var(--panel); border-left:1px solid var(--line); padding:14px 16px; overflow-y:auto; flex-shrink:0;}
+  #side h2{font-size:17px; margin-bottom:2px;}
+  #side .meta{margin:6px 0 10px; display:flex; gap:6px; flex-wrap:wrap;}
+  .tag{font-size:11px; padding:1px 8px; border-radius:10px; border:1px solid var(--line); color:var(--sub);}
+  .tag.im{color:var(--im); border-color:var(--im);}
+  .tag.plan{color:var(--plan); border-color:var(--plan);}
+  .tag.part{color:#e0a34d; border-color:#e0a34d;}
+  #side h3{font-size:13px; color:var(--c-task); margin:14px 0 4px; letter-spacing:1px;}
+  #side ul{padding-left:18px; color:#bcc7d4; font-size:13px;}
+  #side li{margin-bottom:4px;}
+  #side li b{color:var(--txt);}
+  #side .hint{color:var(--sub); font-size:12.5px;}
+  #side a{color:var(--c-isr); cursor:pointer; text-decoration:underline;}
+  .chainbox{margin-top:10px;}
+  .chainstep{border-left:3px solid #2a3542; padding:4px 10px; margin:6px 0; color:#a8b4c2; font-size:13px; cursor:pointer;}
+  .chainstep.cur{border-color:#ffd35c; color:var(--txt); background:#1c2430;}
+  .chainstep .n{color:#ffd35c; font-weight:700; margin-right:6px;}
+  #playctl{display:flex; gap:6px; margin-top:8px;}
+  #playctl button{flex:1; background:#1d2836;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 0;cursor:pointer;}
+
+  /* ===== 图例 ===== */
+  #legend{position:absolute; right:12px; bottom:12px; background:#121924ee; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--sub); z-index:4;}
+  #legend .row{display:flex; align-items:center; gap:6px; margin:2px 0;}
+  #legend .sw{border:1px solid;}
+  #toast{position:absolute; top:12px; left:50%; transform:translateX(-50%); background:#24405a; border:1px solid var(--c-isr); padding:6px 16px; border-radius:8px; font-size:13px; display:none; z-index:6;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>智能搬运 · 模块逻辑图</h1>
+  <div class="chains" id="chains"></div>
+  <div id="filters"></div>
+  <button class="btn" id="resetView">复位视图</button>
+</div>
+
+<div id="main">
+  <div id="svgwrap">
+    <svg id="cv"></svg>
+    <div id="legend">
+      <div class="row"><span class="sw" style="background:#2b5b8a;border-color:var(--c-isr)"></span>硬件 / ISR</div>
+      <div class="row"><span class="sw" style="background:#1f4d38;border-color:var(--c-drv)"></span>驱动模块</div>
+      <div class="row"><span class="sw" style="background:#5a4a1f;border-color:var(--c-var)"></span>关键变量 / 数据</div>
+      <div class="row"><span class="sw" style="background:#4a2b5a;border-color:var(--c-rtos)"></span>RTOS 对象</div>
+      <div class="row"><span class="sw" style="background:#1f4a4a;border-color:var(--c-task)"></span>任务</div>
+      <div class="row"><span class="sw" style="background:#3a3f4a;border-color:var(--c-sm)"></span>比赛状态机</div>
+      <div class="row"><span class="sw" style="background:#5a2b2b;border-color:var(--c-danger)"></span>安全 / 故障</div>
+      <div class="row"><span class="sw" style="background:transparent;border-color:#7d8aa0;border-style:dashed"></span>虚线 = 规划中未实现</div>
+      <div class="row" style="color:#5d6b7d">拖动空白平移 · 滚轮缩放 · 节点可拖动</div>
+    </div>
+    <div id="toast"></div>
+  </div>
+  <div id="side"><div class="hint"><b>使用说明</b><br>
+    · 点击节点：查看职责、变量与「变化时的操作」<br>
+    · 顶栏按钮：播放典型事件链（如急停链、启动链）<br>
+    · 顶栏勾选框：按层显隐模块<br>
+    · 悬停节点：高亮与其相连的所有关系<br>
+    · 绿框=已在代码实现，虚线灰=规划中（冻结表/任务设计文档）
+  </div></div>
+</div>
+
+<script>
+/* =====================================================================
+   数据定义：节点 = 硬件/驱动/变量/RTOS对象/任务/状态机
+   status: im=已实现  plan=规划中  part=部分实现
+   ===================================================================== */
+const NODES = [
+/* ---------- 硬件 / ISR 层 ---------- */
+{id:'hw_start', layer:'isr', t:'START 按键', s:'PA0 上拉输入', status:'part', x:130,y:150,w:140,h:56,
+ desc:'比赛唯一启动入口，上电自检后等待 START，<b>断电重启不得自动运动</b>。按键消抖 10–20ms。<br><b>现状：</b>GPIO 已配置；按键扫描/消抖逻辑<b>未写</b>，需在 SafetyTask 中实现。',
+ react:[['电平变化(按下)','SafetyTask 消抖确认 → 锁存 start_consumed，置 EV_START_LATCHED，第二次按下被忽略'],['消费成功','MatchTask 从 WAIT_START 推进到 READ_MISSION（唯一放行条件）']]},
+{id:'hw_stop', layer:'isr', t:'STOP/ESTOP 按键', s:'PA1 EXTI1 下降沿', status:'part', x:310,y:150,w:150,h:56,
+ desc:'急停入口。EXTI1 中断已在 NVIC 使能（优先级5），但 <b>HAL_GPIO_EXTI_Callback 目前为空——待接入</b>。<br>冻结表约束：急停 ISR 只置事件位/锁存，<b>不得</b>在 ISR 里做 HAL 阻塞操作。',
+ react:[['下降沿触发','ISR 置位 EV_ESTOP / 调 Servo_RequestSafeStop()（仅写 volatile 标志）'],['SafetyTask 去抖确认','锁存 ESTOP → 进入 SAFE_STOP 六步序列，运动目标原子清零']]},
+{id:'hw_usart10', layer:'isr', t:'USART10 RX 中断', s:'PE2/PE3 · HWT101', status:'im', x:530,y:150,w:150,h:56,
+ desc:'HWT101 姿态模块 115200 8N1。<b>现状：单字节中断接收</b>（main.c），冻结表最终要求改造为 DMA+IDLE/环形缓冲。',
+ react:[['每收到 1 字节','HAL_UART_RxCpltCallback → HWT101_ProcessByte() 填帧，ISR 内不做解析以外的计算']]},
+{id:'hw_usart12', layer:'isr', t:'USART1/2 RX DMA', s:'MaxiCAM×2 · 规划', status:'plan', x:760,y:150,w:150,h:56,
+ desc:'视觉串口接收链（规划）：DMA 搬运 + IDLE 中断断帧 → 字节流缓冲 sb_qr_rx(128B) / sb_vision_rx(512B)。<br>ISR 只搬字节并唤醒解析任务；需注意 H7 D-Cache 与 DMA 缓冲区一致性。',
+ react:[['IDLE 中断','唤醒 PerceptionTask 解析完整帧；字节流溢出则当前帧作废并计数']]},
+{id:'hw_fdcan', layer:'isr', t:'FDCAN1/2 收发', s:'500kbps 经典CAN', status:'part', x:1000,y:150,w:150,h:56,
+ desc:'FDCAN1=机械臂达妙 / FDCAN2=底盘 4×张大头（冻结表 3.1）。<br><b>现状：</b>CubeMX 已初始化；zdt_motor.c 实际占用 FDCAN1（<b>与冻结表冲突，待迁 FDCAN2</b>）；过滤器/FIFO 为占位配置，需补齐。FDCAN3 预留。',
+ react:[['RX FIFO 收到帧','ISR 搬入 q_can_rx → CommsTask 打时间戳、更新链路健康；超时则 CAN_TIMEOUT 锁存'],['TX 需求','仅 CommsTask 从任务上下文发送；SafetyTask 急停帧走 q_can_urgent 优先通道']]},
+{id:'hw_tim_ctrl', layer:'isr', t:'控制定时器 1kHz', s:'TIM6/TIM2 · 规划', status:'plan', x:1220,y:150,w:150,h:56,
+ desc:'专用控制节拍（规划，任务设计文档 §9）。<b>当前 TIM7 是 HAL 时基不能挪用</b>。ISR 只发任务通知，不做浮点/PID/总线访问。',
+ react:[['每 1ms 溢出','直接任务通知唤醒 ControlTask 执行一次控制计算（300µs 预算）']]},
+{id:'hw_pwm', layer:'isr', t:'TIM4 PWM 50Hz', s:'PD12=CH1 · PD13=CH2', status:'im', x:1450,y:150,w:170,h:56,
+ desc:'舵机脉冲硬件输出。<b>已实测：20ms 周期、500–2500µs 脉宽正确</b>。时基由 servo.c 在运行时重配（1MHz 计数、ARR=19999），.ioc 占位参数待 CubeMX 修正。',
+ react:[['CCR 改变','下一 PWM 周期输出新脉宽 → 舵机朝目标角运动（斜坡由驱动软件保证）'],['PWM Stop','两路同时失去脉冲 → 舵机脱力（安全停状态）']]},
+{id:'hw_led', layer:'isr', t:'LED ×4', s:'PD0电源 PD1运行 PD2故障 PD3通信', status:'plan', x:1680,y:150,w:170,h:56,
+ desc:'PWR 常亮 / RUN 1Hz 心跳 / ERR 故障锁存常亮 / COM 关键收发闪烁。GPIO 已配置，行为逻辑未写（属 SafetyTask/遥测职责）。',
+ react:[['故障锁存建立','ERR_LED 常亮，优先级高于普通状态显示'],['SAFE_STOP 执行','按冻结表顺序点亮 ERR，显示/记录故障码']]},
+{id:'hw_iwdg', layer:'isr', t:'独立看门狗', s:'IWDG · 规划', status:'plan', x:1860,y:150,w:130,h:56,
+ desc:'只在所有关键任务 heartbeat 正常时由 SafetyTask 喂狗（WATCHDOG_NOT_READY 时不喂），禁止 Idle Hook 无条件喂。',
+ react:[['任一关键任务心跳缺失','停止喂狗 → 受控复位前记录最后安全快照']]},
+
+/* ---------- 驱动层 ---------- */
+{id:'drv_hwt101', layer:'drv', t:'HWT101 姿态解析', s:'main.c 内 · 已实测', status:'im', x:530,y:360,w:160,h:56,
+ desc:'解析 WIT 标准 0x55 帧：0x52=Z 轴角速度，0x53=Yaw。上电 10 帧建立零漂基线，之后连续累加零漂补偿。<b>规划：拆为独立驱动模块 + DMA+IDLE 接收</b>。',
+ vars:['hwt101_yaw_deg（度）','hwt101_gyro_z_dps（度/秒）','hwt101_zero_drift_deg（零漂）','sample/error 计数'],
+ react:[['0x53 帧校验通过','yaw 更新 + sample_count++'],['帧校验失败','error_count++（屏显红色提示）']]},
+{id:'drv_vision', layer:'drv', t:'视觉协议解析', s:'USART1/2 · 规划', status:'plan', x:760,y:360,w:150,h:56,
+ desc:'ASCII 帧 @QR/@RING/@COLOR/@OBS，\\r\\n 结尾，最大 128B，XOR-8 校验，seq 模 65536。只有 valid=1 且置信度达阈值的帧可用于闭环。每类数据记录接收时间（数据年龄管理）。',
+ vars:['任务码 4 组×3 位（1–6）','圆环 id/x/y/theta/conf','颜色 id/conf','障碍 front/left/right'],
+ react:[['帧校验失败/超长','丢弃并计错，不计入有效数据'],['QR 合法','置 EV_MISSION_VALID + 发显示消息；非法 → TASK_PARSE_ERROR 锁存'],['数据年龄超限','对应动作禁止使用旧数据（VISION_TIMEOUT）']]},
+{id:'drv_zdt', layer:'drv', t:'张大头 X42S 驱动', s:'zdt_motor.c · FDCAN1', status:'part', x:990,y:360,w:155,h:56,
+ desc:'闭环步进单电机台架版：使能/速度/位置/读状态/等应答，协议校验字 0x6B。<br><b>待办：迁移到 FDCAN2、扩展为 4 电机统一提交、统一健康状态映射</b>（冻结表 3.1 约束）。',
+ vars:['g_status: rx/error_count、last_ack','status_flags（0x3A：使能/到位/堵转）','position_raw / speed_raw','g_bus_fault'],
+ react:[['收到 E2/EE 应答','error_count++，判参数错/帧错'],['0x3A 报堵转/堵转保护','上报 MOTOR_FAULT → SafetyTask 锁存'],['应答超时','g_bus_fault 置位 → CAN_TIMEOUT 锁存']]},
+{id:'drv_damiao', layer:'drv', t:'达妙 DM 驱动', s:'FDCAN1 · 规划', status:'plan', x:1190,y:360,w:145,h:56,
+ desc:'机械臂旋转轴 DM4310（规划）。MIT 模式协议，参考资料与 H7 例程已在 docs/vendor/damiao/。<b>前置条件：ZDT 迁出 FDCAN1</b>。',
+ react:[['MIT 帧下发','力矩/位置/速度目标发送；反馈帧更新温度/电流/在线状态'],['反馈超时','CAN_TIMEOUT → SafetyTask']]},
+{id:'drv_servo', layer:'drv', t:'舵机驱动 servo.c', s:'TIM4 双路 · 已实测', status:'im', x:1440,y:360,w:160,h:56,
+ desc:'270° 舵机（行程待标定）。50Hz 时基驱动内重配；角度/脉宽双接口；参数表集中管理行程/安全角/限速/镜像。<b>安全停符合冻结表</b>：ISR 只置标志，PWM 停止在任务上下文执行。<br>规划上：仅 ActuatorTask 可更新 TIM4 舵机目标（所有权原则）。',
+ vars:['g_servo_params[] 行程/安全角/限速/invert','g_servo_state[] current/target_angle','g_safe_stop_request(volatile)','g_safe_stop_latched'],
+ react:[['SetAngle/SetPulseUs','仅更新目标角（钳位到机械行程），不直接动硬件'],['Servo_Update() 周期喂','按 speed_dps 斜坡逼近目标 → 写 CCR；dt 钳位 50ms 防突跳'],['到位 |Δ|<0.2°','IsBusy()=0，上层动作状态机可推进下一步'],['RequestSafeStop()（ISR 安全）','置 volatile 标志；下一次 Update 停两路 PWM 并锁存，拒绝新指令'],['RecoverFromSafeStop()','人工确认后调用：重新输出安全角（135°），清除锁存']]},
+{id:'drv_ips200', layer:'drv', t:'IPS200 屏幕驱动', s:'SPI2 · 已点屏', status:'im', x:1670,y:360,w:155,h:56,
+ desc:'SPI2 + PC6/7/8 控制脚，RGB565 绘制 API（文本/矩形/位图）。<b>当前由 defaultTask 独占刷新</b>；规划中比赛显示走 USART3 陶晶驰串口屏（DisplayTask 独占）。',
+ react:[['draw_text 定位刷新','文本背景覆盖旧内容（黑底覆盖式，无需清屏）']]},
+{id:'drv_uart4', layer:'drv', t:'UART4 调试口', s:'PC10/PC11 · 已用', status:'im', x:1850,y:360,w:140,h:56,
+ desc:'调试日志/遥测专用，不承载安全控制指令。当前 defaultTask 500ms 阻塞发送 HWT101 遥测行；规划由 TelemetryTask 接管（栈水位/队列峰值/性能统计）。比赛模式只发不收。'},
+
+/* ---------- 变量 / 数据层 ---------- */
+{id:'v_start', layer:'var', t:'start_consumed', s:'启动锁存', status:'plan', x:150,y:610,w:140,h:52,
+ desc:'唯一启动机会锁存（冻结表 §2）。SafetyTask 消抖后置位并锁存，本轮比赛流程内不清除；复活/重跑必须按赛前授权流程清空。',
+ react:[['0→1（START 消费）','MatchTask 放行 WAIT_START → READ_MISSION'],['再次尝试启动','被忽略（禁止二次启动）']]},
+{id:'v_mission', layer:'var', t:'任务码结果', s:'颜色数组/环号/序号', status:'plan', x:340,y:610,w:150,h:52,
+ desc:'156+123+516+231 → 解析为 4 组颜色/圆环编号。校验：恰 4 组、每组 3 位、字符 1–6、NUL 结尾；任何非法输入返回 TASK_PARSE_ERROR。',
+ react:[['解析成功','保存规范化结果 + 置 EV_MISSION_VALID + 发显示消息'],['解析失败','TASK_PARSE_ERROR 锁存，回到合法读码流程，不清除故障历史'],['READ_MISSION 门禁','未得到合法任务码前<b>不得抓取物料</b>']]},
+{id:'v_yaw', layer:'var', t:'hwt101_yaw_deg', s:'航向角 · 已实测', status:'im', x:550,y:610,w:150,h:52,
+ desc:'姿态航向（度），带零漂补偿。<b>现在</b>：defaultTask 屏显/UART4 遥测。<b>规划</b>：SensorFusionTask 输入 → NavEstimate 快照 → MotionTask/ControlTask 闭环。',
+ react:[['数值变化','① 立即屏显（500ms 周期）② 规划：参与航向闭环，误差进入 ControlTask PID'],['数据年龄超限','规划：Vision/IMU 旧数据禁止闭环（降级处理）']]},
+{id:'v_gyro', layer:'var', t:'hwt101_gyro_z_dps', s:'Z 轴角速度', status:'im', x:740,y:610,w:150,h:52,
+ desc:'Z 轴角速度（度/秒，±2000 量程换算）。旋转控制的阻尼项/打滑判据输入（规划）。',
+ react:[['数值变化','屏显刷新；规划：旋转动作到位判定的角速度门限']]},
+{id:'v_drift', layer:'var', t:'zero_drift_deg', s:'零漂估计', status:'im', x:930,y:610,w:145,h:52,
+ desc:'上电静置 10 帧建立基线，之后每帧累加角度增量得到累计零漂。drift_ready 前屏显 WAIT 进度。',
+ react:[['每帧更新','yaw_previous 追踪 + 角度回绕处理（WrapAngleDelta）'],['ready 后','Yaw 显示值 = 原始值 − 零漂']]},
+{id:'v_servo_tgt', layer:'var', t:'舵机 target/current', s:'目标角/输出角', status:'im', x:1470,y:610,w:160,h:52,
+ desc:'每路舵机一组（g_servo_state）。SetAngle/SetPulseUs 只改 target；current 由 Servo_Update 斜坡推进，直接对应 CCR。',
+ react:[['target 改变','Servo_Update 按 speed_dps 斜坡逐步逼近（10–20ms 周期喂）'],['current 改变','立即写 TIM4 CCR → 下一 PWM 周期生效'],['|target−current|<0.2°','IsBusy=0 → 动作状态机推进/取下一物料']]},
+{id:'v_servo_estop', layer:'var', t:'safe_stop_request', s:'volatile · ISR 置位', status:'im', x:1690,y:610,w:160,h:52,
+ desc:'舵机急停标志。RequestSafeStop 可在任意 ISR 直接调用（只写标志）；真正的 PWM 停止统一在任务上下文执行（冻结表：急停 ISR 不做 HAL 操作）。',
+ react:[['0→1','下一次 Servo_Update：停两路 PWM → 舵机脱力 → latched=1'],['latched=1 期间','SetAngle/SetPulseUs 全部被忽略（禁止新增危险动作）'],['人工确认后 Recover','重新输出安全角 135°，清锁存，重新计斜坡时基']]},
+{id:'v_zdt_status', layer:'var', t:'ZDT 状态包', s:'flags/位置/速度', status:'im', x:1090,y:610,w:140,h:52,
+ desc:'0x3A 状态位（使能/到位/堵转/堵转保护）+ 0x36 位置 + 0x35 速度 + 应答计数。Volatile，ISR 更新。',
+ react:[['堵转/堵转保护位','→ MOTOR_FAULT 锁存（停止对应总线目标 + 请求安全刹车）'],['到位位置反馈','规划：位置动作的 poll 判定源']]},
+{id:'v_zdt_fault', layer:'var', t:'g_bus_fault', s:'总线故障标志', status:'im', x:1270,y:610,w:130,h:52,
+ desc:'ZDT 应答超时/总线异常标志（volatile）。',
+ react:[['0→1','上报 CAN_TIMEOUT → SafetyTask 锁存 → SAFE_STOP 时发目标清零/急停命令']]},
+{id:'v_vage', layer:'var', t:'视觉数据年龄', s:'每类数据独立记录', status:'plan', x:340,y:710,w:150,h:52,
+ desc:'QR/RING/COLOR/OBS 各自记录最后接收 tick。动作允许的最大数据年龄按状态单独设定（冻结表 §8.1）。',
+ react:[['接收新帧','刷新该类数据时间戳'],['年龄超限','VISION_TIMEOUT：按状态配置是否锁存；不允许用旧定位数据推进动作']]},
+{id:'v_fault', layer:'var', t:'统一故障锁存', s:'9 类故障码 · EV_FAULT', status:'plan', x:560,y:710,w:160,h:52,
+ desc:'ESTOP / CAN_TIMEOUT / VISION_TIMEOUT / MOTOR_FAULT / LIMIT_HIT / PAYLOAD_MISSING / STACK_COLOR_MISMATCH / TASK_PARSE_ERROR / WATCHDOG_NOT_READY。<b>只有 SafetyTask 能锁存统一故障位</b>（冻结表 §12）。',
+ react:[['任一故障建立','是否锁存按故障码定义；进入 SAFE_STOP 序列'],['锁存期间','ERR_LED 常亮 + 屏幕显示故障码；等待人工确认复位']]},
+{id:'v_payload', layer:'var', t:'EV_PAYLOAD_ON_PLATFORM', s:'载物台确认', status:'plan', x:790,y:710,w:190,h:52,
+ desc:'物料离开原料区前必须能确认载有物料（传感器/可靠开关，引脚待冻结分配）。',
+ react:[['ActuatorTask 确认放上','置位 → MatchTask 才允许抓下一个物料'],['取走物料','清除'],['离开原料区门禁','载物台计数必须等于本批计划数量，否则禁止出发']]},
+{id:'v_obstacle', layer:'var', t:'EV_OBSTACLE', s:'障碍物事件', status:'plan', x:1030,y:710,w:150,h:52,
+ desc:'OBS 帧距离低于安全阈值或视觉报障时由 PerceptionTask 置位；连续安全帧确认后清除。',
+ react:[['0→1','MotionTask 立即减速停车（优先于普通导航），再决定绕行或等待'],['连续安全帧','清除，恢复正常导航']]},
+{id:'v_score', layer:'var', t:'比赛统计', s:'抓取/放置/码垛/回站', status:'plan', x:1250,y:710,w:150,h:52,
+ desc:'得分事件统计（冻结表 §5 显示契约）：抓取、放置、码垛、回站事件后立即刷新显示；与实际动作结果一致（验收条件）。',
+ react:[['动作成功','MatchTask 更新统计 → q_display → 屏幕刷新'],['回站完成','FINISH 前统计保持显示']]},
+
+/* ---------- RTOS 对象层 ---------- */
+{id:'eg_system', layer:'rtos', t:'eg_system 事件组', s:'9 个事件位', status:'plan', x:170,y:930,w:150,h:52,
+ desc:'位定义：SELF_TEST_OK / START_LATCHED / MISSION_VALID / RUNNING / PAYLOAD_ON_PLATFORM / OBSTACLE / ESTOP / FAULT / FINISHED。ISR/任务 → Safety/Match 的汇总信号。',
+ react:[['EV_ESTOP 置位','SafetyTask 立即处理（仅系统复位清除）'],['EV_START_LATCHED','唯一启动已确认（复位清除）'],['EV_MISSION_VALID','MatchTask 读码门禁放行'],['EV_RUNNING','比赛流程运行标志（MatchTask 设置）']]},
+{id:'q_match_event', layer:'rtos', t:'q_match_event', s:'深度16 · MatchEvent', status:'plan', x:400,y:930,w:145,h:52,
+ desc:'所有服务 → MatchTask 的事件队列。故障事件走独立通知；普通重复事件可合并。动作完成统一转换为 MatchEvent，不直接调用 MatchTask 函数。',
+ react:[['入队','MatchTask 按事件推进状态机'],['队列满','故障事件走独立通知不被阻塞']]},
+{id:'q_motion_req', layer:'rtos', t:'q_motion_request', s:'深度4 · MotionRequest', status:'plan', x:590,y:930,w:155,h:52,
+ desc:'MatchTask → MotionTask 的运动请求。满载策略：拒绝新请求并报告 BUSY（不静默丢弃）。',
+ react:[['请求提交','MotionTask 生成路径段/定位目标'],['BUSY','MatchTask 等待或取消（cancel 语义：收敛到安全保持态）']]},
+{id:'q_act_req', layer:'rtos', t:'q_actuator_request', s:'深度4 · ActuatorRequest', status:'plan', x:790,y:930,w:160,h:52,
+ desc:'MatchTask → ActuatorTask 的动作请求，每个动作携带超时、取消令牌和唯一 request_id。',
+ react:[['请求提交','ActuatorTask 进入对应动作状态机（取料/放置/码垛…）'],['完成/失败','转换为 MatchEvent 回 MatchTask，携带耗时/错误码/观测值']]},
+{id:'sb_vision', layer:'rtos', t:'sb_qr/vision_rx', s:'DMA 字节流 128/512B', status:'plan', x:1010,y:930,w:155,h:52,
+ desc:'UART DMA ISR → PerceptionTask 的环形/线性字节流。溢出策略：sb_qr 丢弃到下一帧边界，sb_vision 记录溢出并使当前帧失效。',
+ react:[['IDLE 断帧','唤醒 PerceptionTask 解析'],['溢出','当前帧作废 + 溢出计数（WARN 级）']]},
+{id:'q_can_rx', layer:'rtos', t:'q_can_rx', s:'深度32 · CanFrame', status:'plan', x:1190,y:930,w:130,h:52,
+ desc:'FDCAN ISR → CommsTask。满载丢弃最旧普通反馈、锁存溢出计数。',
+ react:[['入队','CommsTask 打时间戳 → 链路健康/电机反馈更新']]},
+{id:'q_can_tx', layer:'rtos', t:'q_can_tx', s:'深度16 · 单一发送入口', status:'plan', x:1340,y:930,w:130,h:52,
+ desc:'领域层 → CommsTask，同一总线发送入口单一所有权。满载返回失败，禁止静默丢弃。',
+ react:[['入队','CommsTask 以固定周期（建议 200Hz）下发最新四轮目标，避免历史控制量堆积']]},
+{id:'q_can_urgent', layer:'rtos', t:'q_can_urgent', s:'深度4 · 急停通道', status:'plan', x:1490,y:930,w:140,h:52,
+ desc:'SafetyTask → CommsTask 专用急停容量，始终先于普通队列；配合紧急任务通知避免被普通 CAN 流量阻塞。',
+ react:[['急停帧入队','CommsTask 优先发送底盘/机械臂立即停止帧']]},
+{id:'q_display', layer:'rtos', t:'q_display', s:'深度8 · DisplayMessage', status:'plan', x:1660,y:930,w:130,h:52,
+ desc:'各任务 → DisplayTask。低优先级，重复项可合并，同类型消息覆盖旧值。显示内容契约：状态阶段/任务码/得分/故障码/通信健康(500–1000ms)。',
+ react:[['故障码消息','优先于普通状态刷新']]},
+
+/* ---------- 任务层 ---------- */
+{id:'t_safety', layer:'task', t:'SafetyTask', s:'Realtime·事件+10ms', status:'plan', x:140,y:1180,w:145,h:56,
+ desc:'安全最高优先级。职责：启动锁存、急停、统一故障锁存（只有它能改）、各任务心跳监测、看门狗喂养、统一停机（SAFE_STOP 六步）。<br><b>现状：未创建</b>（按键 EXTI 回调也是空的）。',
+ react:[['收到 ESTOP/FAULT','锁存 + 进入 SAFE_STOP：①清运动目标 ②发停止/急停帧 ③禁危险动作 ④ERR_LED ⑤显示故障 ⑥等人工复位'],['心跳缺失','停喂看门狗 + 记录快照']]},
+{id:'t_control', layer:'task', t:'ControlTask', s:'High·1kHz 通知', status:'plan', x:330,y:1180,w:145,h:56,
+ desc:'纯周期控制：根据速度目标 + 位姿误差算四轮轮速目标（限幅/斜坡/死区），<b>不感知比赛流程</b>。PID 参数来自参数快照（mtx_params），不硬编码。',
+ react:[['每 1ms 通知','控制计算 → WheelSetpoint 版本化快照 → CommsTask'],['急停','运动目标原子清零（一个控制周期内，验收条件）']]},
+{id:'t_fusion', layer:'task', t:'SensorFusionTask', s:'AboveNormal2·5ms', status:'plan', x:520,y:1180,w:160,h:56,
+ desc:'IMU(HWT101) + 光流 + 轮端反馈 → NavEstimate 快照（x/y/yaw/quality/timestamp）。首版质量门控互补融合，不上 EKF。旧数据超有效期不得用于闭环。',
+ react:[['数据融合','输出位姿快照供 Motion/Control 读取'],['质量不足','禁止光流积分，降级标志']]},
+{id:'t_comms', layer:'task', t:'CommsTask', s:'AboveNormal1·事件+5ms', status:'plan', x:710,y:1180,w:150,h:56,
+ desc:'CAN 收发唯一所有者：q_can_rx/q_can_tx/q_can_urgent 处理、反馈时间戳、链路健康（CAN_TIMEOUT 判定）。建议 200Hz 下发最新轮速目标。',
+ react:[['急停通知','优先发 q_can_urgent 停止帧'],['总线反馈超时','上报 CAN_TIMEOUT → SafetyTask']]},
+{id:'t_motion', layer:'task', t:'MotionTask', s:'AboveNormal·10ms', status:'plan', x:900,y:1180,w:145,h:56,
+ desc:'导航/避障/到站判定/圆环视觉精定位。只有它能生成车体运动目标。障碍物事件优先于普通导航：先减速停车，再绕行或等待。',
+ react:[['收到运动请求','分段规划 → MotionSetpoint 快照给 ControlTask'],['EV_OBSTACLE','立即减速停车'],['到位判定','发布完成 MatchEvent']]},
+{id:'t_actuator', layer:'task', t:'ActuatorTask', s:'Normal3·10ms+请求', status:'plan', x:1090,y:1180,w:155,h:56,
+ desc:'取料/放载物台/粗加工放置/暂存转移/码垛的动作状态机（start→poll→complete/timeout/cancel）。<b>唯一有权更新 TIM4 舵机目标</b>。SAFE_STOP 时取消动作并保持不致掉料的安全姿态。',
+ react:[['动作请求','生成 request_id + deadline，逐步驱动舵机/机械臂'],['动作完成/失败','MatchEvent 回 MatchTask（含耗时/错误码）'],['取消','执行器内部收敛到安全保持态']]},
+{id:'t_percep', layer:'task', t:'PerceptionTask', s:'Normal2·DMA事件', status:'plan', x:1290,y:1180,w:160,h:56,
+ desc:'二维码/颜色/圆环/障碍物协议解析与有效期管理（对应 drv_vision 的应用逻辑）。置位 EV_MISSION_VALID / EV_OBSTACLE。',
+ react:[['解析出有效帧','更新 Perception 快照（单写者版本化）'],['任务码合法/非法','EV_MISSION_VALID / TASK_PARSE_ERROR'],['障碍进入安全距离','EV_OBSTACLE 置位']]},
+{id:'t_match', layer:'task', t:'MatchTask', s:'Normal·事件+10ms兜底', status:'plan', x:1490,y:1180,w:150,h:56,
+ desc:'比赛主状态机（唯一能改比赛状态）：动作编排、规则门禁检查、统计。on_entry 只发一次动作请求，随后等带 request_id 的结果；<b>禁止 HAL_Delay / 无限等待 / osDelay 表示机械完成</b>。',
+ react:[['MatchEvent 到达','推进/回退/失败转移状态机'],['动作超时','deadline 超过 → 失败转移或 SAFE_STOP'],['门禁不满足','停留当前状态等待（如未读到合法任务码不抓料）']]},
+{id:'t_display', layer:'task', t:'DisplayTask', s:'Low3·事件+100ms', status:'plan', x:1690,y:1180,w:145,h:56,
+ desc:'独占 USART3 陶晶驰串口屏（页面协议待定）：任务码、阶段、统计、故障码、通信健康。字体 ≥12mm。仅它发屏幕指令。',
+ react:[['q_display 消息','合并/覆盖后刷屏'],['故障码','优先显示']]},
+{id:'t_telemetry', layer:'task', t:'TelemetryTask', s:'Low·100ms', status:'plan', x:1855,y:1180,w:130,h:56,
+ desc:'UART4 调试日志：栈水位（uxTaskGetStackHighWaterMark）、队列峰值、CPU 占用、性能统计。比赛模式只发不收。',
+ react:[['周期','日志行发送 UART4']]},
+{id:'t_default', layer:'task', t:'defaultTask (现有)', s:'Normal·500ms 测试', status:'im', x:420,y:1085,w:170,h:52,
+ desc:'<b>台架测试任务</b>：IPS200 点屏显示 HWT101 数据 + UART4 遥测。任务设计文档建议后续删除或改为 AppTasks_Init 后自删除。',
+ react:[['500ms 周期','读 HWT101 getter → 屏显 6 行 → UART4 发遥测行']]},
+{id:'t_zdt', layer:'task', t:'zdtMotorTask (现有)', s:'Normal·台架测试', status:'im', x:650,y:1085,w:170,h:52,
+ desc:'<b>台架测试任务</b>：驱动张大头单电机使能/运动/读状态（FDCAN1）。迁移 FDCAN2 四电机后此任务重写为正式 Control/Comms 链路。',
+ react:[['周期','发送命令 → WaitAck 阻塞等应答（台架用）']]},
+
+/* ---------- 比赛状态机 ---------- */
+{id:'sm_pre', layer:'sm', t:'BOOT→自检→等启动', s:'上电等待 START', status:'plan', x:150,y:1440,w:180,h:56,
+ desc:'BOOT → SELF_TEST → WAIT_START。自检通过置 EV_SELF_TEST_OK；WAIT_START 等待唯一启动（start_consumed）。断电重启不得自动运动。',
+ react:[['START 消费成功','→ READ_MISSION']]},
+{id:'sm_read', layer:'sm', t:'READ_MISSION', s:'读任务码', status:'plan', x:390,y:1440,w:140,h:56,
+ desc:'等待 @QR 帧并解析。<b>门禁：未得到合法任务码不得抓取物料</b>；非法帧 TASK_PARSE_ERROR 后回到合法读码流程。',
+ react:[['合法任务码 + 屏显完成','→ PICK_BATCH1_ITEM_1']]},
+{id:'sm_b1', layer:'sm', t:'批次1 取放×3', s:'原料→载物台→粗加工', status:'plan', x:590,y:1440,w:180,h:56,
+ desc:'PICK_BATCH1_ITEM_1/2/3 → MOVE_TO_PROCESSING_1 → PLACE_BATCH1_PROCESSING → TRANSFER_BATCH1_TO_TEMP。每次只抓一个；放到载物台确认后才能继续；放置颜色/顺序/环号必须与任务码一致。',
+ react:[['单次抓取完成','EV_PAYLOAD_ON_PLATFORM 确认 → 下一物料'],['放置完成事件','推进 → 全部完成 → TRANSFER → RETURN_TO_RAW']]},
+{id:'sm_ret1', layer:'sm', t:'RETURN_TO_RAW', s:'回原料区', status:'plan', x:830,y:1440,w:150,h:56,
+ desc:'第一遍完成后返回原料区。<b>门禁：离开原料区时载物台计数 = 本批计划数量</b>。',
+ react:[['到站判定通过','→ PICK_BATCH2_ITEM_1']]},
+{id:'sm_b2', layer:'sm', t:'批次2 取放×3', s:'原料→粗加工→暂存', status:'plan', x:1040,y:1440,w:180,h:56,
+ desc:'PICK_BATCH2_ITEM_1/2/3 → MOVE_TO_PROCESSING_2 → PLACE_BATCH2_PROCESSING → MOVE_TO_TEMP_2。流程同批次1，目标区为暂存区。',
+ react:[['放置完成','→ STACK_BATCH2']]},
+{id:'sm_stack', layer:'sm', t:'STACK_BATCH2', s:'同色码垛门禁', status:'plan', x:1280,y:1440,w:150,h:56,
+ desc:'第二遍在暂存区码垛。<b>三重校验：目标第一层存在 + 颜色一致 + 第一层放置正确</b>；不一致进入 STACK_COLOR_MISMATCH 故障态，禁止盲放。',
+ react:[['校验通过','码垛放置 → 下一层'],['颜色不一致','STACK_COLOR_MISMATCH 锁存 → SAFE_STOP']]},
+{id:'sm_ret2', layer:'sm', t:'RETURN_TO_START', s:'回启停区', status:'plan', x:1490,y:1440,w:155,h:56,
+ desc:'返回抽签确定的启停区（起点编号在启动前锁存）。到位确认方式：视觉/限位组合（待冻结）。',
+ react:[['回站验证通过 + 底盘停止','→ FINISH']]},
+{id:'sm_finish', layer:'sm', t:'FINISH', s:'完成统计保持显示', status:'plan', x:1700,y:1440,w:140,h:56,
+ desc:'比赛流程完成，置 EV_FINISHED。验收：完成统计与实际动作结果一致，回站后保持显示。',
+ react:[['进入','统计送屏 → 保持显示，等待收车']]},
+{id:'sm_safe', layer:'sm', t:'SAFE_STOP', s:'任意运行态可进入', status:'plan', x:1900,y:1440,w:140,h:56,
+ desc:'安全出口（冻结表 §12 顺序）：①清/锁运动目标 ②发停止/急停帧 ③禁新舵机/机械臂动作 ④ERR_LED 常亮 ⑤显示/记录故障码与快照 ⑥等人工确认复位。',
+ react:[['ESTOP/严重故障/动作超时','从任意运行状态进入（红色虚线箭头）'],['人工复位','整系统复位，故障历史保留']]},
+];
+
+/* =====================================================================
+   边定义  f→t，label 显示在线中点
+   ===================================================================== */
+const EDGES = [
+/* 硬件 → 驱动/变量 */
+{f:'hw_usart10', t:'drv_hwt101', l:'字节流'},
+{f:'hw_usart12', t:'drv_vision', l:'DMA+IDLE', dash:true},
+{f:'hw_fdcan', t:'drv_zdt', l:'RX FIFO'},
+{f:'drv_zdt', t:'hw_fdcan', l:'TX 帧', dash:true},
+{f:'hw_fdcan', t:'drv_damiao', l:'MIT 模式', dash:true},
+{f:'drv_servo', t:'hw_pwm', l:'CCR×2'},
+{f:'hw_pwm', t:'hw_led', l:'', dash:true, hide:true},
+/* 硬件 → 任务 */
+{f:'hw_start', t:'t_safety', l:'消抖锁存', dash:true},
+{f:'hw_stop', t:'t_safety', l:'EXTI 置位', dash:true, red:true},
+{f:'hw_stop', t:'v_servo_estop', l:'RequestSafeStop(仅置位)', dash:true, red:true},
+{f:'hw_tim_ctrl', t:'t_control', l:'任务通知 1kHz', dash:true},
+{f:'hw_iwdg', t:'t_safety', l:'喂狗', dash:true},
+{f:'t_safety', t:'hw_led', l:'RUN/ERR/COM', dash:true},
+/* 驱动 → 变量 */
+{f:'drv_hwt101', t:'v_yaw', l:'解析'},
+{f:'drv_hwt101', t:'v_gyro', l:'解析'},
+{f:'drv_hwt101', t:'v_drift', l:'零漂'},
+{f:'drv_zdt', t:'v_zdt_status', l:'0x3A/0x36/0x35'},
+{f:'drv_zdt', t:'v_zdt_fault', l:'应答超时', red:true},
+{f:'drv_vision', t:'v_mission', l:'@QR 解析', dash:true},
+{f:'drv_vision', t:'v_vage', l:'接收时间戳', dash:true},
+{f:'drv_vision', t:'v_obstacle', l:'@OBS 阈值', dash:true},
+/* 变量 → 任务（消费） */
+{f:'v_yaw', t:'t_default', l:'屏显/遥测(现)'},
+{f:'v_yaw', t:'t_fusion', l:'IMU 输入', dash:true},
+{f:'v_gyro', t:'t_fusion', l:'旋转阻尼', dash:true},
+{f:'v_mission', t:'t_match', l:'读码门禁', dash:true},
+{f:'v_start', t:'t_match', l:'启动放行', dash:true},
+{f:'v_start', t:'t_safety', l:'锁存维护', dash:true},
+{f:'v_servo_tgt', t:'t_actuator', l:'IsBusy 判定', dash:true},
+{f:'v_zdt_status', t:'t_comms', l:'反馈健康', dash:true},
+{f:'v_zdt_fault', t:'t_safety', l:'CAN_TIMEOUT', dash:true, red:true},
+{f:'v_vage', t:'t_safety', l:'VISION_TIMEOUT', dash:true, red:true},
+{f:'v_fault', t:'t_safety', l:'锁存维护', dash:true},
+{f:'v_payload', t:'t_match', l:'抓取门禁', dash:true},
+{f:'v_obstacle', t:'t_motion', l:'减速停车', dash:true, red:true},
+{f:'v_score', t:'t_display', l:'显示契约', dash:true},
+/* 任务 ↔ 任务 / 队列 */
+{f:'t_match', t:'q_motion_req', l:'运动请求', dash:true},
+{f:'q_motion_req', t:'t_motion', l:'', dash:true},
+{f:'t_match', t:'q_act_req', l:'动作请求', dash:true},
+{f:'q_act_req', t:'t_actuator', l:'', dash:true},
+{f:'t_actuator', t:'q_match_event', l:'完成/失败事件', dash:true},
+{f:'t_motion', t:'q_match_event', l:'到位事件', dash:true},
+{f:'q_match_event', t:'t_match', l:'', dash:true},
+{f:'t_match', t:'q_display', l:'阶段/统计', dash:true},
+{f:'t_safety', t:'q_display', l:'故障码', dash:true},
+{f:'q_display', t:'t_display', l:'', dash:true},
+{f:'hw_usart12', t:'sb_vision', l:'DMA 搬运', dash:true},
+{f:'sb_vision', t:'t_percep', l:'IDLE 唤醒', dash:true},
+{f:'t_percep', t:'q_match_event', l:'视觉事件', dash:true},
+{f:'t_control', t:'t_comms', l:'WheelSetpoint 快照', dash:true},
+{f:'t_fusion', t:'t_motion', l:'NavEstimate 快照', dash:true},
+{f:'t_fusion', t:'t_control', l:'位姿快照', dash:true},
+{f:'t_motion', t:'t_control', l:'MotionSetpoint 快照', dash:true},
+{f:'t_comms', t:'q_can_tx', l:'', dash:true},
+{f:'q_can_tx', t:'hw_fdcan', l:'200Hz 目标', dash:true},
+{f:'hw_fdcan', t:'q_can_rx', l:'', dash:true},
+{f:'q_can_rx', t:'t_comms', l:'', dash:true},
+{f:'t_safety', t:'q_can_urgent', l:'急停帧', dash:true, red:true},
+{f:'q_can_urgent', t:'t_comms', l:'', dash:true, red:true},
+{f:'t_safety', t:'v_fault', l:'统一锁存', dash:true},
+{f:'t_actuator', t:'v_servo_tgt', l:'提交目标', dash:true},
+{f:'t_actuator', t:'drv_servo', l:'SetAngle(唯一所有权)', dash:true},
+{f:'t_display', t:'drv_ips200', l:'调试屏(现default)', dash:true},
+{f:'t_default', t:'drv_ips200', l:'独占刷新'},
+{f:'t_default', t:'drv_uart4', l:'遥测 500ms'},
+{f:'t_telemetry', t:'drv_uart4', l:'日志接管', dash:true},
+{f:'t_zdt', t:'drv_zdt', l:'台架命令'},
+{f:'t_safety', t:'v_servo_estop', l:'SAFE_STOP 请求', dash:true, red:true},
+/* 状态机链 */
+{f:'t_match', t:'sm_pre', l:'状态机唯一推进者', dash:true},
+{f:'t_match', t:'sm_read', l:'', dash:true},
+{f:'sm_pre', t:'hw_usart12', l:'等待 @QR 帧', dash:true},
+{f:'t_percep', t:'v_mission', l:'任务码结果', dash:true},
+{f:'t_percep', t:'v_vage', l:'时间戳', dash:true},
+{f:'t_percep', t:'v_obstacle', l:'阈值判定', dash:true},
+{f:'v_servo_estop', t:'t_safety', l:'锁存确认', dash:true, red:true},
+{f:'t_safety', t:'sm_safe', l:'进入安全停', dash:true, red:true},
+{f:'sm_pre', t:'sm_read', l:'START'},
+{f:'sm_read', t:'sm_b1', l:'任务码合法'},
+{f:'sm_b1', t:'sm_ret1', l:'批次1完成'},
+{f:'sm_ret1', t:'sm_b2', l:'到达原料区'},
+{f:'sm_b2', t:'sm_stack', l:'批次2放置完'},
+{f:'sm_stack', t:'sm_ret2', l:'码垛完成'},
+{f:'sm_ret2', t:'sm_finish', l:'回站验证'},
+{f:'sm_read', t:'sm_safe', l:'超时', dash:true, red:true},
+{f:'sm_b1', t:'sm_safe', l:'掉料/超时', dash:true, red:true},
+{f:'sm_b2', t:'sm_safe', l:'超时', dash:true, red:true},
+{f:'sm_stack', t:'sm_safe', l:'颜色不一致', dash:true, red:true},
+{f:'v_fault', t:'sm_safe', l:'任意故障', dash:true, red:true},
+];
+
+/* =====================================================================
+   事件链（变量改变后的操作演示）
+   ===================================================================== */
+const CHAINS = [
+{id:'c_start', name:'① 一键启动链', steps:[
+ {n:'hw_start', x:'START(PA0) 按下：上拉输入变低电平'},
+ {n:'t_safety', x:'SafetyTask 消抖确认 10–20ms → start_consumed 0→1 锁存，置 EV_START_LATCHED（第二次按下被忽略）'},
+ {n:'v_start', x:'锁存变量生效：本轮比赛流程内不清除，复活/重跑需赛前授权'},
+ {n:'t_match', x:'MatchTask 收到启动事件，读 EV_START_LATCHED 放行'},
+ {n:'sm_pre', x:'状态机 WAIT_START → READ_MISSION'},
+ {n:'hw_usart12', x:'等待 MaxiCAM @QR 帧（DMA+IDLE 接收）'},
+ {n:'sb_vision', x:'帧数据进入字节流缓冲（sb_qr_rx 128B）'},
+ {n:'t_percep', x:'PerceptionTask 解析校验 4组×3位(1–6)'},
+ {n:'v_mission', x:'合法 → 保存颜色/环号数组 + 置 EV_MISSION_VALID；非法 → TASK_PARSE_ERROR'},
+ {n:'t_match', x:'门禁检查：EV_MISSION_VALID 已置位'},
+ {n:'sm_read', x:'→ PICK_BATCH1_ITEM_1，比赛正式开始'},
+]},
+{id:'c_estop', name:'② 急停链', steps:[
+ {n:'hw_stop', x:'STOP(PA1) 按下：EXTI1 下降沿中断（优先级5）'},
+ {n:'v_servo_estop', x:'ISR 仅置 volatile 标志：Servo_RequestSafeStop() + eg_system ESTOP 位（不做 HAL 阻塞操作）'},
+ {n:'t_safety', x:'SafetyTask 去抖确认 → 锁存 EV_ESTOP/EV_FAULT（只有它能锁存）'},
+ {n:'sm_safe', x:'进入 SAFE_STOP 六步：①清/锁运动目标'},
+ {n:'q_can_urgent', x:'② 急停帧走专用队列，始终先于普通 CAN 流量'},
+ {n:'t_comms', x:'③ CommsTask 优先发送底盘/机械臂立即停止帧 → FDCAN2 目标清零'},
+ {n:'v_servo_estop', x:'④ Servo_Update 消费标志：停两路 PWM，舵机脱力，锁存期间拒绝新指令'},
+ {n:'hw_led', x:'⑤ ERR_LED 常亮，RUN 心跳停'},
+ {n:'q_display', x:'⑥ 显示/记录故障码与最后安全快照，等待人工确认复位'},
+]},
+{id:'c_vision', name:'③ 视觉数据链', steps:[
+ {n:'hw_usart12', x:'MaxiCAM @RING/@COLOR/@OBS 帧 → USART1/2 DMA 搬入字节流'},
+ {n:'sb_vision', x:'IDLE 中断断帧：sb_qr_rx(128B)/sb_vision_rx(512B)，溢出则当前帧作废'},
+ {n:'t_percep', x:'PerceptionTask 解析：XOR-8 校验、seq 检查、帧长 ≤128B'},
+ {n:'v_vage', x:'刷新该类数据接收时间戳（数据年龄管理）'},
+ {n:'v_obstacle', x:'@OBS 距离低于安全阈值 → EV_OBSTACLE 置位'},
+ {n:'t_motion', x:'MotionTask：障碍优先——先减速停车，再绕行/等待重识别；正常时圆环精定位修正作业点'},
+ {n:'t_control', x:'NavEstimate/MotionSetpoint 快照参与 1kHz 闭环'},
+ {n:'t_comms', x:'WheelSetpoint 快照 → CAN 发送入口'},
+ {n:'q_can_tx', x:'CommsTask 以 200Hz 下发 FDCAN2，防止历史控制量堆积'},
+]},
+{id:'c_imu', name:'④ 姿态数据链（已实现）', steps:[
+ {n:'hw_usart10', x:'USART10 每收 1 字节进中断（现状：单字节接收）'},
+ {n:'drv_hwt101', x:'HWT101_ProcessByte 填 11 字节帧：0x52=角速度 / 0x53=Yaw，校验和验证'},
+ {n:'v_drift', x:'上电 10 帧建立零漂基线，之后每帧累加零漂补偿'},
+ {n:'v_yaw', x:'yaw_deg / gyro_z_dps 更新（volatile，ISR 写）'},
+ {n:'t_default', x:'defaultTask 500ms 读 getter：IPS200 屏显 6 行 + UART4 遥测'},
+ {n:'t_fusion', x:'（规划）SensorFusionTask 融合 IMU+光流+轮端 → NavEstimate 快照 → 闭环'},
+]},
+{id:'c_servo', name:'⑤ 舵机命令链（已实现）', steps:[
+ {n:'t_actuator', x:'上层动作状态机提交角度（规划）/ 台架测试直接调用'},
+ {n:'v_servo_tgt', x:'Servo_SetAngle/SetPulseUs 仅更新目标（钳位机械行程），不动硬件'},
+ {n:'v_servo_estop', x:'若处于安全停锁存 → 指令被拒绝（禁止新增危险动作）'},
+ {n:'drv_servo', x:'Servo_Update() 按 speed_dps 斜坡逼近，dt 钳位 50ms 防突跳'},
+ {n:'hw_pwm', x:'写 CCR → 下一 50Hz 周期输出新脉宽（500–2500µs）'},
+ {n:'v_servo_tgt', x:'|Δ|<0.2° → IsBusy=0，动作状态机推进下一步'},
+]},
+{id:'c_motor', name:'⑥ 电机故障链', steps:[
+ {n:'drv_zdt', x:'0x3A 状态报堵转/堵转保护，或应答超时 g_bus_fault 置位'},
+ {n:'v_zdt_fault', x:'CAN_TIMEOUT / MOTOR_FAULT 证据就绪'},
+ {n:'t_safety', x:'SafetyTask 锁存统一故障位（按故障码定义是否锁存）'},
+ {n:'sm_safe', x:'进入 SAFE_STOP：运动目标清零 + 发停止/急停命令'},
+ {n:'q_can_urgent', x:'急停帧优先通道下发 → 驱动器安全刹车'},
+ {n:'hw_led', x:'ERR_LED 常亮 + 屏幕显示对应 CAN/电机故障码'},
+]},
+{id:'c_stack', name:'⑦ 码垛校验链', steps:[
+ {n:'t_match', x:'MatchTask 进入 STACK_BATCH2，on_entry 发码垛动作请求'},
+ {n:'q_act_req', x:'ActuatorRequest 携带 request_id/超时/取消令牌'},
+ {n:'t_actuator', x:'码垛前三重校验：目标第一层存在？颜色一致？第一层放置正确？'},
+ {n:'v_mission', x:'比对任务码颜色数组（第二遍码垛必须同色）'},
+ {n:'sm_stack', x:'通过 → 执行码垛；不一致 → STACK_COLOR_MISMATCH 锁存，禁止盲放'},
+ {n:'q_match_event', x:'完成/失败事件回 MatchTask，携带耗时/错误码'},
+]},
+];
+
+/* =====================================================================
+   渲染与交互
+   ===================================================================== */
+const LAYERS = [
+ {id:'isr', name:'硬件/ISR', y:60,  h:220},
+ {id:'drv', name:'驱动层',   y:300, h:200},
+ {id:'var', name:'变量/数据', y:540, h:280},
+ {id:'rtos',name:'RTOS对象', y:860, h:200},
+ {id:'task',name:'任务层',   y:1040,h:280},
+ {id:'sm',  name:'状态机',   y:1370,h:200},
+];
+const COLORS = {isr:'#2b5b8a', drv:'#1f4d38', var:'#5a4a1f', rtos:'#4a2b5a', task:'#1f4a4a', sm:'#3a3f4a'};
+const BORDERS = {isr:'#5b9bd5', drv:'#4fc08d', var:'#e0b34d', rtos:'#b07fd8', task:'#4fc3c3', sm:'#93a1b5'};
+const STTxt = {im:'已实现', plan:'规划中', part:'部分实现'};
+const STCls = {im:'im', plan:'plan', part:'part'};
+
+const svg = document.getElementById('cv');
+const NS = 'http://www.w3.org/2000/svg';
+const W = 2050, H = 1640;
+const NMAP = {}; NODES.forEach(n=>NMAP[n.id]=n);
+NODES.forEach(n=>{n.w=n.w||150; n.h=n.h||56;});
+
+let vb = {x:-40, y:-40, w:W+120, h:H+140};
+let selNode = null, chainTimer = null, chainState = null;
+const layerG = {}, hidden = {};
+
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent||svg).appendChild(e); return e;
+}
+function applyVB(){ svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`); }
+
+function build(){
+  svg.innerHTML='';
+  /* 背景层带 */
+  const gRoot = el('g',{});
+  layerG.root = gRoot;
+  LAYERS.forEach(L=>{
+    el('rect',{class:'band', x:10,y:L.y, width:W-40, height:L.h, rx:14}, gRoot);
+    el('text',{class:'bandtxt', x:26, y:L.y+24}, gRoot).textContent = L.name;
+  });
+  /* 边 */
+  layerG.edges = el('g',{}, gRoot);
+  EDGES.forEach(e=>{ if(e.hide) return; e.el = drawEdge(e); });
+  /* 节点 */
+  LAYERS.forEach(L=>{
+    layerG[L.id] = el('g',{}, gRoot);
+    NODES.filter(n=>n.layer===L.id).forEach(n=>drawNode(n, layerG[L.id]));
+  });
+  applyVB();
+}
+
+function edgeAnchor(a,b){
+  /* 矩形 a 边界上朝向 b 中心的交点 */
+  const dx=b.x-a.x, dy=b.y-a.y;
+  if(dx===0 && dy===0) return {x:a.x, y:a.y};
+  const sx = dx===0 ? Infinity : (a.w/2)/Math.abs(dx);
+  const sy = dy===0 ? Infinity : (a.h/2)/Math.abs(dy);
+  const t = Math.min(sx, sy);
+  return {x:a.x+dx*t, y:a.y+dy*t};
+}
+function arrowPts(p1,p2){
+  const dx=p2.x-p1.x, dy=p2.y-p1.y, len=Math.hypot(dx,dy)||1;
+  const ux=dx/len, uy=dy/len, px=-uy, py=ux;
+  return `${p2.x},${p2.y} ${p2.x-9*ux+4*px},${p2.y-9*uy+4*py} ${p2.x-9*ux-4*px},${p2.y-9*uy-4*py}`;
+}
+function drawEdge(e){
+  const a=NMAP[e.f], b=NMAP[e.t]; if(!a||!b) return null;
+  const p1 = edgeAnchor(a,b), p2 = edgeAnchor(b,a);
+  const cls = 'edge' + (e.dash?' dash':'') + (e.red?' red':'');
+  const path = el('path',{class:cls, d:`M${p1.x},${p1.y} L${p2.x},${p2.y}`}, layerG.edges);
+  const arrow = el('polygon',{points:arrowPts(p1,p2),
+    fill: e.red? '#e06c6c':'#7d8b9c', opacity:.9}, layerG.edges);
+  let lbl=null;
+  if(e.l) lbl = el('text',{class:'edgelbl', x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2-4, 'text-anchor':'middle'}, layerG.edges);
+  if(lbl) lbl.textContent = e.l;
+  e.pathEl=path; e.lblEl=lbl; e.arrowEl=arrow;
+  return path;
+}
+
+function drawNode(n, parent){
+  const g = el('g',{class:'node'+(n.status!=='im'?' dash':''), 'data-id':n.id}, parent);
+  const c = n.layer==='sm' && n.id==='sm_safe' ? '#5a2b2b' : COLORS[n.layer];
+  const bc = n.layer==='sm' && n.id==='sm_safe' ? '#e06c6c' : BORDERS[n.layer];
+  el('rect',{x:n.x-n.w/2, y:n.y-n.h/2, width:n.w, height:n.h, rx:9, fill:c, stroke:bc, 'fill-opacity':.92}, g);
+  const t1 = el('text',{class:'t', x:n.x, y:n.y-(n.s?4:0)}, g); t1.textContent=n.t;
+  if(n.s){ const t2=el('text',{class:'s', x:n.x, y:n.y+14}, g); t2.textContent=n.s; }
+  /* 状态角标 */
+  const st = el('text',{class:'badgelbl', x:n.x+n.w/2-16, y:n.y-n.h/2+13,
+    fill: n.status==='im'?'#4fc08d':(n.status==='part'?'#e0a34d':'#7d8aa0')}, g);
+  st.textContent = n.status==='im'?'●':(n.status==='part'?'◐':'○');
+  g.addEventListener('click', ev=>{ev.stopPropagation(); selectNode(n.id);});
+  g.addEventListener('mouseenter', ()=>highlight(n.id));
+  g.addEventListener('mouseleave', ()=>highlight(null));
+  n.gEl = g; n.rectEl = g.children[0];
+  makeDraggable(n, g);
+}
+
+/* --- 拖动节点 --- */
+function makeDraggable(n, g){
+  let drag=null;
+  g.addEventListener('mousedown', ev=>{
+    ev.stopPropagation();
+    const pt = svgPoint(ev);
+    drag = {n, ox:pt.x - n.x, oy:pt.y - n.y, moved:false};
+    svg.classList.add('grabnode');
+  });
+  window.addEventListener('mousemove', ev=>{
+    if(!drag) return;
+    const pt = svgPoint(ev);
+    const nx = pt.x - drag.ox, ny = pt.y - drag.oy;
+    if(Math.abs(nx-drag.n.x)+Math.abs(ny-drag.n.y) > 2) drag.moved = true;
+    drag.n.x = nx; drag.n.y = ny;
+    redrawNode(drag.n);
+  });
+  window.addEventListener('mouseup', ()=>{ if(drag){drag=null; svg.classList.remove('grabnode');} });
+}
+function redrawNode(n){
+  n.gEl.children[0].setAttribute('x', n.x-n.w/2);
+  n.gEl.children[0].setAttribute('y', n.y-n.h/2);
+  n.gEl.children[1].setAttribute('x', n.x); n.gEl.children[1].setAttribute('y', n.y-(n.s?4:0));
+  if(n.s){ n.gEl.children[2].setAttribute('x', n.x); n.gEl.children[2].setAttribute('y', n.y+14);
+           n.gEl.children[3].setAttribute('x', n.x+n.w/2-16); n.gEl.children[3].setAttribute('y', n.y-n.h/2+13); }
+  else { n.gEl.children[2].setAttribute('x', n.x+n.w/2-16); n.gEl.children[2].setAttribute('y', n.y-n.h/2+13); }
+  EDGES.forEach(e=>{ if(e.hide||!e.pathEl) return;
+    if(e.f===n.id || e.t===n.id){ e.pathEl.remove(); if(e.arrowEl) e.arrowEl.remove(); if(e.lblEl) e.lblEl.remove();
+      e.pathEl=null; e.arrowEl=null; e.lblEl=null;
+      const a=NMAP[e.f], b=NMAP[e.t];
+      const p1=edgeAnchor(a,b), p2=edgeAnchor(b,a);
+      const cls = 'edge'+(e.dash?' dash':'')+(e.red?' red':'');
+      e.pathEl = el('path',{class:cls, d:`M${p1.x},${p1.y} L${p2.x},${p2.y}`}, layerG.edges);
+      e.arrowEl = el('polygon',{points:arrowPts(p1,p2),
+        fill: e.red?'#e06c6c':'#7d8b9c', opacity:.9}, layerG.edges);
+      if(e.l){ e.lblEl = el('text',{class:'edgelbl', x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2-4, 'text-anchor':'middle'}, layerG.edges); e.lblEl.textContent=e.l; }
+    }
+  });
+}
+
+/* --- 平移缩放 --- */
+function svgPoint(ev){
+  const r = svg.getBoundingClientRect();
+  return { x: vb.x + (ev.clientX-r.left)/r.width*vb.w,
+           y: vb.y + (ev.clientY-r.top)/r.height*vb.h };
+}
+svg.addEventListener('mousedown', ev=>{
+  if(ev.target.closest('.node')) return;
+  const start = {px:ev.clientX, py:ev.clientY, vx:vb.x, vy:vb.y};
+  svg.classList.add('dragging');
+  const mv = e=>{
+    const r = svg.getBoundingClientRect();
+    vb.x = start.vx - (e.clientX-start.px)*vb.w/r.width;
+    vb.y = start.vy - (e.clientY-start.py)*vb.h/r.height;
+    applyVB();
+  };
+  const up = ()=>{ svg.classList.remove('dragging'); window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); };
+  window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+});
+svg.addEventListener('wheel', ev=>{
+  ev.preventDefault();
+  const r = svg.getBoundingClientRect();
+  const mx = vb.x + (ev.clientX-r.left)/r.width*vb.w;
+  const my = vb.y + (ev.clientY-r.top)/r.height*vb.h;
+  const k = ev.deltaY>0 ? 1.12 : 1/1.12;
+  const nw = Math.min(Math.max(vb.w*k, 300), 4200);
+  const s = nw/vb.w;
+  vb.x = mx-(mx-vb.x)*s; vb.y = my-(my-vb.y)*s; vb.w=nw; vb.h=vb.h*s;
+  applyVB();
+},{passive:false});
+svg.addEventListener('click', ev=>{ if(!ev.target.closest('.node')) selectNode(null); });
+document.getElementById('resetView').onclick = ()=>{ vb={x:-40,y:-40,w:W+120,h:H+140}; applyVB(); selectNode(null); stopChain(); };
+
+/* --- 高亮邻居 --- */
+function highlight(id){
+  clearDim();
+  if(!id) return;
+  const keep = new Set([id]);
+  EDGES.forEach(e=>{ if(e.hide) return;
+    if(e.f===id) keep.add(e.t);
+    if(e.t===id) keep.add(e.f);
+  });
+  NODES.forEach(n=>{ if(!keep.has(n.id)) n.gEl.classList.add('dim'); });
+  EDGES.forEach(e=>{ if(e.hide||!e.pathEl) return;
+    if(e.f===id||e.t===id){ e.pathEl.classList.add('hl'); e.lblEl&&e.lblEl.classList.add('hl'); if(e.arrowEl) e.arrowEl.setAttribute('fill','#ffd35c'); }
+    else e.pathEl.classList.add('dim');
+  });
+}
+function clearDim(){
+  NODES.forEach(n=>n.gEl && n.gEl.classList.remove('dim'));
+  EDGES.forEach(e=>{ if(!e.pathEl) return; e.pathEl.classList.remove('hl','dim'); e.lblEl&&e.lblEl.classList.remove('hl');
+    if(e.arrowEl) e.arrowEl.setAttribute('fill', e.red?'#e06c6c':'#7d8b9c'); });
+  /* 恢复链高亮 */
+  if(chainState) paintChain();
+}
+
+/* --- 选中节点 → 侧栏 --- */
+const side = document.getElementById('side');
+function selectNode(id){
+  selNode = id;
+  NODES.forEach(n=>n.gEl.classList.toggle('sel', n.id===id));
+  if(!id){ resetSide(); return; }
+  const n = NMAP[id];
+  let html = `<h2>${n.t}</h2><div class="meta">
+    <span class="tag" style="color:${BORDERS[n.layer]};border-color:${BORDERS[n.layer]}">${LAYERS.find(L=>L.id===n.layer).name}</span>
+    <span class="tag ${STCls[n.status]}">${STTxt[n.status]}</span></div>
+    <div style="color:#bcc7d4">${n.desc||''}</div>`;
+  if(n.vars){ html += `<h3>关键变量 / 数据</h3><ul>${n.vars.map(v=>`<li>${v}</li>`).join('')}</ul>`; }
+  if(n.react){ html += `<h3>变量变化时的操作</h3><ul>${n.react.map(r=>`<li><b>${r[0]}</b><br>${r[1]}</li>`).join('')}</ul>`; }
+  /* 上下游 */
+  const ups=[], downs=[];
+  EDGES.forEach(e=>{ if(e.hide) return;
+    if(e.t===id && !ups.some(u=>u.id===e.f)) ups.push({id:e.f, l:e.l});
+    if(e.f===id && !downs.some(u=>u.id===e.t)) downs.push({id:e.t, l:e.l});
+  });
+  const link = (arr,title)=> arr.length ? `<h3>${title}</h3><ul>${arr.map(x=>
+      `<li><a data-goto="${x.id}">${NMAP[x.id].t}</a>${x.l?` <span style="color:var(--sub)">· ${x.l}</span>`:''}</li>`).join('')}</ul>`:'';
+  html += link(ups,'上游（谁触发它）') + link(downs,'下游（它触发谁）');
+  html += `<h3>相关事件链</h3><ul>${CHAINS.filter(c=>c.steps.some(s=>s.n===id))
+      .map(c=>`<li><a data-chain="${c.id}">${c.name}</a></li>`).join('') || '<li style="list-style:none;color:var(--sub)">—</li>'}</ul>`;
+  side.innerHTML = html;
+  side.querySelectorAll('[data-goto]').forEach(a=>a.onclick=()=>{ selectNode(a.dataset.goto); flashNode(a.dataset.goto); });
+  side.querySelectorAll('[data-chain]').forEach(a=>a.onclick=()=>playChain(a.dataset.chain));
+}
+function resetSide(){
+  side.innerHTML = `<div class="hint"><b>使用说明</b><br>
+    · 点击节点：查看职责、变量与「变化时的操作」<br>
+    · 顶栏按钮：播放典型事件链（如急停链、启动链）<br>
+    · 顶栏勾选框：按层显隐模块<br>
+    · 悬停节点：高亮与其相连的所有关系<br>
+    · 绿框=已在代码实现，虚线灰=规划中（冻结表/任务设计文档）</div>`;
+}
+function flashNode(id){
+  const n = NMAP[id]; if(!n) return;
+  n.gEl.classList.add('chain');
+  setTimeout(()=>n.gEl.classList.remove('chain'), 900);
+}
+
+/* --- 图层筛选 --- */
+const filtBox = document.getElementById('filters');
+LAYERS.forEach(L=>{
+  hidden[L.id]=false;
+  const lb = document.createElement('label');
+  /* 不放 checkbox：label 内控件会把 click 冒泡回来导致处理函数双触发 */
+  lb.innerHTML = `<span class="sw" style="background:${COLORS[L.id]};border-color:${BORDERS[L.id]}"></span>${L.name}`;
+  lb.onclick = ()=>{
+    hidden[L.id]=!hidden[L.id];
+    lb.style.opacity = hidden[L.id]? .35 : 1;
+    layerG[L.id].style.display = hidden[L.id]? 'none':'';
+    /* 隐藏层相关的边 */
+    EDGES.forEach(e=>{ if(!e.pathEl) return;
+      const hide = hidden[NMAP[e.f].layer] || hidden[NMAP[e.t].layer];
+      e.pathEl.style.display = hide? 'none':'';
+      if(e.arrowEl) e.arrowEl.style.display = hide? 'none':'';
+      if(e.lblEl) e.lblEl.style.display = hide? 'none':'';
+    });
+  };
+  filtBox.appendChild(lb);
+});
+
+/* --- 事件链播放 --- */
+const chainBox = document.getElementById('chains');
+CHAINS.forEach(c=>{
+  const b = document.createElement('button');
+  b.textContent = c.name; b.dataset.cid = c.id;
+  b.onclick = ()=> playChain(c.id);
+  chainBox.appendChild(b);
+});
+function playChain(cid){
+  stopChain();
+  selectNode(null);
+  chainState = {def: CHAINS.find(c=>c.id===cid), idx:0};
+  document.querySelectorAll('#chains button').forEach(b=>b.classList.toggle('on', b.dataset.cid===cid));
+  renderChainSide();
+  paintChain();
+  chainTimer = setInterval(()=>{ nextStep(); }, 2600);
+}
+function nextStep(){
+  if(!chainState) return;
+  chainState.idx++;
+  if(chainState.idx >= chainState.def.steps.length){ stopChain(true); return; }
+  renderChainSide(); paintChain();
+}
+function stopChain(finished){
+  if(chainTimer){ clearInterval(chainTimer); chainTimer=null; }
+  if(chainState){ NODES.forEach(n=>{n.gEl.classList.remove('chain'); n.gEl.querySelector('.stnum')?.remove(); n.numEl=null;}); }
+  chainState=null;
+  document.querySelectorAll('#chains button').forEach(b=>b.classList.remove('on'));
+  clearEdges();
+  if(finished) toast('事件链播放完毕');
+}
+function clearEdges(){
+  EDGES.forEach(e=>{ if(!e.pathEl) return; e.pathEl.classList.remove('hl'); e.lblEl&&e.lblEl.classList.remove('hl');
+    if(e.arrowEl) e.arrowEl.setAttribute('fill', e.red?'#e06c6c':'#7d8b9c'); });
+}
+function paintChain(){
+  clearEdges();
+  if(!chainState) return;
+  const {def, idx} = chainState;
+  /* 清掉所有角标，再为已走过的节点补序号 */
+  NODES.forEach(n=>{
+    n.gEl.classList.remove('chain');
+    n.gEl.querySelectorAll('.stnum').forEach(x=>x.remove());
+    n.numEl = null;
+  });
+  def.steps.forEach((s,i)=>{
+    const n = NMAP[s.n];
+    if(i<=idx){
+      n.gEl.classList.add('chain');
+      if(i===idx){
+        const num = el('text',{class:'stnum', x:n.x, y:n.y-n.h/2-8}, n.gEl);
+        num.textContent = String(i+1);
+        n.numEl = num;
+      }
+    }
+  });
+  /* 高亮走过的边 */
+  for(let i=0;i<idx;i++){
+    const a=def.steps[i].n, b=def.steps[i+1].n;
+    EDGES.forEach(e=>{ if(e.hide||!e.pathEl) return;
+      if((e.f===a&&e.t===b)||(e.f===b&&e.t===a)){ e.pathEl.classList.add('hl'); e.lblEl&&e.lblEl.classList.add('hl');
+        if(e.arrowEl) e.arrowEl.setAttribute('fill','#ffd35c'); }
+    });
+  }
+}
+function renderChainSide(){
+  const {def, idx} = chainState;
+  let html = `<h2>${def.name}</h2><div class="meta"><span class="tag" style="color:#ffd35c;border-color:#ffd35c">事件链演示</span></div>
+   <div class="chainbox">` + def.steps.map((s,i)=>
+    `<div class="chainstep ${i===idx?'cur':''}" data-i="${i}"><span class="n">${i+1}.</span>${s.x}</div>`).join('');
+  html += `</div><div id="playctl">
+    <button id="pv">◀ 上一步</button><button id="nx">下一步 ▶</button><button id="sp">停止</button></div>`;
+  side.innerHTML = html;
+  side.querySelector('#pv').onclick = ()=>{ if(chainState&&chainState.idx>0){chainState.idx--; renderChainSide(); paintChain();} };
+  side.querySelector('#nx').onclick = ()=>{ clearInterval(chainTimer); nextStep(); chainTimer=setInterval(nextStep,2600); };
+  side.querySelector('#sp').onclick = ()=>stopChain();
+  side.querySelectorAll('.chainstep').forEach(d=>d.onclick=()=>{
+    chainState.idx = +d.dataset.i; renderChainSide(); paintChain(); clearInterval(chainTimer);
+    chainTimer=setInterval(nextStep,2600);
+  });
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 1800);
+}
+
+build();
+</script>
+</body>
+</html>

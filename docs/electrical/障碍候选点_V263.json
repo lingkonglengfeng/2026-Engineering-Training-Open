@@ -1,0 +1,129 @@
+{
+  "firmware": "V263_PRELIM",
+  "units": "mm",
+  "origin": "left-bottom, X right, Y up",
+  "meaning": "Planning references for road closures; actual objects need not be exactly at these points.",
+  "edit": "Change the sites table in Core/Src/vision_obstacle.c then rebuild. This JSON is a reference export, not W25 data.",
+  "points": [
+    {
+      "id": "P01",
+      "x": 275,
+      "y": 2125,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 0
+    },
+    {
+      "id": "P02",
+      "x": 750,
+      "y": 2125,
+      "cross_min": 1850,
+      "cross_max": 2400,
+      "axis": 2
+    },
+    {
+      "id": "P03",
+      "x": 1750,
+      "y": 2125,
+      "cross_min": 1850,
+      "cross_max": 2400,
+      "axis": 2
+    },
+    {
+      "id": "P04",
+      "x": 275,
+      "y": 1700,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 1
+    },
+    {
+      "id": "P05",
+      "x": 1200,
+      "y": 1650,
+      "cross_min": 1000,
+      "cross_max": 1400,
+      "axis": 1
+    },
+    {
+      "id": "P06",
+      "x": 2125,
+      "y": 1650,
+      "cross_min": 1850,
+      "cross_max": 2400,
+      "axis": 1
+    },
+    {
+      "id": "P07",
+      "x": 800,
+      "y": 1200,
+      "cross_min": 1000,
+      "cross_max": 1400,
+      "axis": 2
+    },
+    {
+      "id": "P08",
+      "x": 1200,
+      "y": 1200,
+      "cross_min": 1000,
+      "cross_max": 1400,
+      "axis": 0
+    },
+    {
+      "id": "P09",
+      "x": 1650,
+      "y": 1200,
+      "cross_min": 1000,
+      "cross_max": 1400,
+      "axis": 2
+    },
+    {
+      "id": "P10",
+      "x": 275,
+      "y": 700,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 1
+    },
+    {
+      "id": "P11",
+      "x": 1200,
+      "y": 762,
+      "cross_min": 1000,
+      "cross_max": 1400,
+      "axis": 1
+    },
+    {
+      "id": "P12",
+      "x": 2125,
+      "y": 762,
+      "cross_min": 1850,
+      "cross_max": 2400,
+      "axis": 1
+    },
+    {
+      "id": "P13",
+      "x": 275,
+      "y": 275,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 0
+    },
+    {
+      "id": "P14",
+      "x": 675,
+      "y": 275,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 2
+    },
+    {
+      "id": "P15",
+      "x": 1700,
+      "y": 275,
+      "cross_min": 0,
+      "cross_max": 550,
+      "axis": 2
+    }
+  ]
+}

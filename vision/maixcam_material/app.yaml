@@ -1,0 +1,8 @@
+id: q144494130
+name: 工训赛启动文件
+version: 1.0.0
+author: 凌空冷风
+icon: app.png
+desc: 工训赛启动文件
+files:
+  - main.py

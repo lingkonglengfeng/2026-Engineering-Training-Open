@@ -1,0 +1,8 @@
+id: cam2_qr
+name: 工训赛第二相机扫码
+version: 1.0.3
+author: 凌空冷风
+icon: app.png
+desc: CAM2倒装180度扫码，统一8字节协议
+files:
+  - main.py

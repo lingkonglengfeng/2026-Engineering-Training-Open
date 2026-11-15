@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960" role="img" aria-labelledby="title desc">
+  <title id="title">双板接口草案 v0.2：主控拓展板连接电源/信号板</title>
+  <desc id="desc">左边主控拓展板，右边电源/信号板。两板之间用26芯牛角排线传信号，独立XH2.54线束传5V。电源/信号板通过XT60接电池，六台ZDT各用XH2.54-4P同时接电源和CAN，达妙用XT30(2+2)同时接电源和CAN，两路视觉模块使用XH2.54-4P。</desc>
+  <defs>
+    <style>
+      text{font-family:'Microsoft YaHei','Noto Sans CJK SC',sans-serif;fill:#183047}
+      .title{font-size:34px;font-weight:700}.subtitle{font-size:18px;fill:#526a7e}.boardhead{font-size:27px;font-weight:700}.head{font-size:21px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#526a7e}.micro{font-size:13px;fill:#526a7e}.tag{font-size:15px;font-weight:700}
+      .board{fill:#fff;stroke:#b8cada;stroke-width:2}.ctrl{fill:#eaf3ff;stroke:#91bde9;stroke-width:1.5}.pwr{fill:#fff0e7;stroke:#e9a27d;stroke-width:1.5}.signal{fill:#e9f7ef;stroke:#88c9a5;stroke-width:1.5}.servo{fill:#fff5dc;stroke:#e3c270;stroke-width:1.5}.light{fill:#f6f8fb;stroke:#d7e2ec;stroke-width:1.5}
+      .wireSig{stroke:#448d67;stroke-width:5;fill:none}.wire5{stroke:#377dc4;stroke-width:5;fill:none}.wireBat{stroke:#dd6944;stroke-width:5;fill:none}.wirePwr{stroke:#b27f1c;stroke-width:5;fill:none}
+    </style>
+    <marker id="arrowSig" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#448d67"/></marker>
+    <marker id="arrow5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#377dc4"/></marker>
+    <marker id="arrowBat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#dd6944"/></marker>
+    <marker id="arrowPwr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#b27f1c"/></marker>
+  </defs>
+  <rect width="1600" height="960" fill="#f1f5f9"/>
+  <text x="54" y="63" class="title">双板接口草案 <tspan fill="#5d7792">v0.2</tspan></text>
+  <text x="54" y="95" class="subtitle">主控拓展板 ⇄ 26 芯牛角排线 ⇄ 电源/信号板；动力电不穿过排线</text>
+
+  <rect x="55" y="139" width="538" height="703" rx="20" class="board"/>
+  <rect x="55" y="139" width="538" height="72" rx="20" fill="#dfedfc"/>
+  <rect x="55" y="185" width="538" height="26" fill="#dfedfc"/>
+  <text x="83" y="185" class="boardhead">① 主控拓展板 CTRL</text>
+  <rect x="80" y="234" width="488" height="114" rx="13" class="ctrl"/>
+  <text x="102" y="270" class="head">STM32H723 核心板排座</text>
+  <text x="102" y="301" class="body">本地 3.3V · 去耦 · W25Q64 · IPS200</text>
+  <text x="102" y="328" class="small">只接收 5V_CTRL，不接入 6S 或舵机供电</text>
+  <rect x="80" y="373" width="488" height="117" rx="13" class="signal"/>
+  <text x="102" y="409" class="head">IDC 2×13 牛角座</text>
+  <text x="102" y="440" class="body">CAN TX/RX ×2 · 舵机 PWM ×2 · EN</text>
+  <text x="102" y="467" class="body">视觉 UART ×2 · 补光 PWM ×2 · 参考 GND</text>
+  <rect x="80" y="515" width="488" height="92" rx="13" class="ctrl"/>
+  <text x="102" y="551" class="head">XH2.54-2P：5V_CTRL / GND</text>
+  <text x="102" y="579" class="small">与 IDC 分开；防止 24V XT30 错插主控电源</text>
+  <rect x="80" y="631" width="488" height="182" rx="13" class="light"/>
+  <text x="102" y="667" class="head">保留在主控侧的安静接口</text>
+  <text x="102" y="699" class="body">HWT101 · I2C 传感器 · 串口屏</text>
+  <text x="102" y="730" class="body">START / STOP · UART4 蓝牙/调试</text>
+  <text x="102" y="761" class="body">SWD · IPS200 · W25Q64</text>
+  <text x="102" y="792" class="small">传感器接口贴近主控，避免穿过动力区</text>
+
+  <path d="M593 425H754" class="wireSig" marker-end="url(#arrowSig)"/>
+  <text x="616" y="405" class="tag" fill="#448d67">26P 信号排线</text>
+  <text x="614" y="452" class="small">不承载电机/舵机电流</text>
+  <path d="M754 557H593" class="wire5" marker-end="url(#arrow5)"/>
+  <text x="620" y="536" class="tag" fill="#377dc4">5V 独立线束</text>
+
+  <rect x="755" y="139" width="560" height="703" rx="20" class="board"/>
+  <rect x="755" y="139" width="560" height="72" rx="20" fill="#ffe7d9"/>
+  <rect x="755" y="185" width="560" height="26" fill="#ffe7d9"/>
+  <text x="783" y="185" class="boardhead">② 电源/信号板 PWR-IO</text>
+  <rect x="780" y="234" width="510" height="92" rx="13" class="pwr"/>
+  <text x="803" y="270" class="head">XT60 电池入口 → 保护 → 电池母线</text>
+  <text x="803" y="299" class="body">开关 / 保险 / 反接 / 浪涌抑制 / 测试点</text>
+  <rect x="780" y="346" width="240" height="123" rx="13" class="ctrl"/>
+  <text x="802" y="380" class="head">5V 逻辑 DC/DC</text>
+  <text x="802" y="410" class="body">→ CTRL / 两个视觉座</text>
+  <text x="802" y="439" class="small">负载预算至少按 3A 档评估</text>
+  <rect x="1040" y="346" width="250" height="123" rx="13" class="servo"/>
+  <text x="1062" y="380" class="head">舵机专用 DC/DC</text>
+  <text x="1062" y="410" class="body">→ 两个舵机 3P 座</text>
+  <text x="1062" y="439" class="small">PWM/EN 由 IDC 来，动力留本板</text>
+  <rect x="780" y="489" width="510" height="130" rx="13" class="signal"/>
+  <text x="802" y="522" class="head">两路 CAN 收发器 + 电机通信接口</text>
+  <text x="802" y="554" class="body">FDCAN1：达妙 1 Mbit/s · FDCAN2：六步进 500 kbit/s</text>
+  <text x="802" y="583" class="small">接口侧 TVS、独立 RS、可选 120Ω、测试点</text>
+  <rect x="780" y="639" width="510" height="174" rx="13" class="light"/>
+  <text x="802" y="673" class="head">本板直接对外出线</text>
+  <text x="802" y="704" class="body">ZDT ×6：XH2.54-4P（24V / GND / CAN H / L）</text>
+  <text x="802" y="735" class="body">达妙 ×1：XT30(2+2)（动力 + CAN）</text>
+  <text x="802" y="766" class="body">舵机 3P ×2 · 视觉 XH2.54-4P ×2 · 补光</text>
+  <text x="802" y="793" class="small">动力区与信号区分开布置，动力回流不经 IDC</text>
+
+  <rect x="1385" y="218" width="164" height="98" rx="14" class="pwr"/>
+  <text x="1407" y="254" class="head">6S 电池</text>
+  <text x="1407" y="283" class="tag" fill="#b75838">XT60</text>
+  <path d="M1385 265H1315" class="wireBat" marker-end="url(#arrowBat)"/>
+  <rect x="1385" y="375" width="164" height="117" rx="14" class="pwr"/>
+  <text x="1401" y="409" class="head">ZDT ×6</text>
+  <text x="1401" y="437" class="body">XH2.54-4P</text>
+  <text x="1401" y="463" class="small">动力 + CAN 同座</text>
+  <path d="M1315 428H1385" class="wirePwr" marker-end="url(#arrowPwr)"/>
+  <rect x="1385" y="541" width="164" height="119" rx="14" class="servo"/>
+  <text x="1401" y="572" class="head">达妙 ×1</text>
+  <text x="1401" y="602" class="body">XT30(2+2)</text>
+  <text x="1401" y="632" class="small">动力 + CAN 同座</text>
+  <path d="M1315 598H1385" class="wirePwr" marker-end="url(#arrowPwr)"/>
+  <rect x="1385" y="709" width="164" height="105" rx="14" class="ctrl"/>
+  <text x="1401" y="741" class="head">舵机 ×2</text>
+  <text x="1401" y="770" class="body">独立动力轨</text>
+  <text x="1401" y="795" class="small">视觉 ×2 / XH2.54-4P</text>
+  <path d="M1315 760H1385" class="wire5" marker-end="url(#arrow5)"/>
+
+  <rect x="55" y="868" width="1494" height="68" rx="13" fill="#fff" stroke="#d4e1eb"/>
+  <text x="78" y="894" class="head">解决复位风险的核心</text>
+  <text x="78" y="922" class="body">舵机电流只在电源/信号板专用电源回路流动；主控由独立 5V 支路供电。仍需实测电池同时启动压降和 MCU 近端 3.3V。</text>
+</svg>
