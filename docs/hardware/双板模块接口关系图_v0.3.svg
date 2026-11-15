@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1800" viewBox="0 0 2600 1800" role="img" aria-labelledby="title desc">
+<title id="title">智能搬运车双板模块与接口关系图 v0.3</title>
+<desc id="desc">仿原理图样式的两板连接示意。左侧为电源/信号板，含XT60电池、5V和舵机电源、两颗CAN收发器、六个ZDT XH2.54四针接口、达妙XT30二加二接口、两路舵机和两路视觉XH2.54四针接口。右侧为主控拓展板，含核心板排座及传感器接口。两板通过26芯牛角排线传信号、XH二针线束传5V。</desc>
+<style>
+  text{font-family:'Microsoft YaHei','Noto Sans CJK SC',Arial,sans-serif;fill:#183349}
+  .background{fill:#fff}.frame{fill:none;stroke:#a53c33;stroke-width:2.4}.board{fill:#fff;stroke:#293f52;stroke-width:2}.section{fill:#fff;stroke:#a8b5bf;stroke-width:1.5}.sectionLabelBg{fill:#fff;stroke:none}
+  .sectionTitle{font-size:22px;font-weight:700;fill:#bd4b33}.title{font-size:33px;font-weight:700}.subtitle{font-size:17px;fill:#5a6f7e}.boardTitle{font-size:29px;font-weight:700;fill:#bd4b33}.moduleTitle{font-size:19px;font-weight:700}.body{font-size:17px}.pinName{font-size:16px}.pinNo{font-size:14px;fill:#af4333;font-weight:700}.note{font-size:13px;fill:#586c7c}.idcNet{font-size:14px;font-weight:700}.footer{font-size:15px}
+  .module,.connector{fill:#fff;stroke:#bd4b33;stroke-width:1.7}.module-power,.connector-power{fill:#fff8f5}.module-servo,.connector-servo{fill:#fffaf0}.module-signal,.connector-signal{fill:#f5fbf8}.module-quiet,.connector-quiet{fill:#f7faff}.pin{fill:#fff;stroke:#bd4b33;stroke-width:1.5}.thin{stroke:#c4d0d7;stroke-width:1.3;fill:none}.wire{stroke:#526b80;stroke-width:2.2;fill:none}.wireBat{stroke:#d66a46;stroke-width:4;fill:none}.wireLogic{stroke:#327dcc;stroke-width:4;fill:none}.wireServo{stroke:#ba8c24;stroke-width:3.6;fill:none}.wireSig{stroke:#3e9870;stroke-width:3.2;fill:none}.ground{stroke:#546779;stroke-width:2.3;fill:none}.tag{stroke-width:1.3}.tag-power{fill:#fff0e9;stroke:#d88e6f}.tag-logic{fill:#eaf4ff;stroke:#81b3e3}.tag-servo{fill:#fff5de;stroke:#dec17a}.tag-signal{fill:#eaf8f0;stroke:#89c5a4}.tagText{font-size:14px;font-weight:700}.warning{fill:#fff3e6;stroke:#e7a16c;stroke-width:1.5}
+</style>
+<rect x="0" y="0" width="2600" height="1800" rx="0" class="background"/>
+<rect x="28" y="28" width="2544" height="1744" rx="0" class="frame"/>
+<text x="69" y="76" class="title" >智能搬运车 · 双板模块与接口关系图</text>
+<text x="71" y="103" class="subtitle" >v0.3 概念示意｜依照原理图分区表达，网络名表示电气关系；连接器物理 1 脚须按实物核对</text>
+<rect x="61" y="137" width="1485" height="1505" rx="0" class="board"/>
+<rect x="1568" y="137" width="971" height="1505" rx="0" class="board"/>
+<text x="86" y="181" class="boardTitle" >板 1：电源 / 信号板 PWR-IO</text>
+<text x="1593" y="181" class="boardTitle" >板 2：主控拓展板 CTRL</text>
+<rect x="85" y="218" width="1437" height="312" rx="3" class="section"/>
+<rect x="98" y="209" width="419" height="28" rx="3" class="sectionLabelBg"/>
+<text x="109" y="229" class="sectionTitle" >01  电池入口 / 电源转换 / 板间 5V</text>
+<rect x="85" y="558" width="1437" height="650" rx="3" class="section"/>
+<rect x="98" y="549" width="334" height="28" rx="3" class="sectionLabelBg"/>
+<text x="109" y="569" class="sectionTitle" >02  CAN 收发器 / 电机接口</text>
+<rect x="85" y="1223" width="1437" height="375" rx="3" class="section"/>
+<rect x="98" y="1214" width="300" height="28" rx="3" class="sectionLabelBg"/>
+<text x="109" y="1234" class="sectionTitle" >03  舵机 / 视觉 / 补光</text>
+<rect x="1592" y="218" width="924" height="758" rx="3" class="section"/>
+<rect x="1605" y="209" width="249" height="28" rx="3" class="sectionLabelBg"/>
+<text x="1616" y="229" class="sectionTitle" >04  主控 / 牛角排线</text>
+<rect x="1592" y="1024" width="924" height="574" rx="3" class="section"/>
+<rect x="1605" y="1015" width="266" height="28" rx="3" class="sectionLabelBg"/>
+<text x="1616" y="1035" class="sectionTitle" >05  本地主控与传感器接口</text>
+<rect x="108" y="278" width="202" height="131" rx="4" class="connector connector-power"/>
+<text x="123" y="305" class="moduleTitle" >J1  XT60 电池</text>
+<path d="M118 316H300" class="thin" />
+<circle cx="127" cy="335" r="4" class="pin"/>
+<text x="143" y="340" class="pinNo" >1</text>
+<text x="164" y="340" class="pinName" >BAT− / GND</text>
+<circle cx="127" cy="363" r="4" class="pin"/>
+<text x="143" y="368" class="pinNo" >2</text>
+<text x="164" y="368" class="pinName" >BAT+ / 6S</text>
+<text x="123" y="398" class="note" >唯一电池入口</text>
+<path d="M310 337H355" class="wireBat" />
+<rect x="355" y="319" width="96" height="36" rx="2" class="module module-power"/>
+<text x="370" y="344" class="pinName" >F1 保险</text>
+<path d="M451 337H488" class="wireBat" />
+<rect x="488" y="319" width="90" height="36" rx="2" class="module module-power"/>
+<text x="501" y="344" class="pinName" >SW 主开关</text>
+<path d="M578 337H760" class="wireBat" />
+<path d="M578 337V253H1020V337" class="wireBat" />
+<circle cx="675" cy="337" r="5" class="pin"/>
+<path d="M675 337V386" class="wireBat" />
+<text x="686" y="382" class="note" >TVS / 反接保护</text>
+<path d="M663 396H687M667 403H683M672 410H678" class="ground" />
+<rect x="608" y="282" width="191" height="27" rx="3" class="tag tag-power"/>
+<text x="617" y="302" class="tagText" >VBAT_MOTOR 18–25.2V</text>
+<rect x="760" y="274" width="240" height="135" rx="5" class="module module-power"/>
+<text x="778" y="305" class="moduleTitle" >U5  5V DC/DC</text>
+<path d="M772 316H988" class="thin" />
+<text x="778" y="344" class="pinName" >IN   VBAT</text>
+<text x="778" y="371" class="pinName" >OUT  5V_SYS</text>
+<text x="778" y="396" class="note" >≥3A 档待负载实测</text>
+<rect x="1020" y="274" width="240" height="135" rx="5" class="module module-servo"/>
+<text x="1038" y="305" class="moduleTitle" >U6  舵机 DC/DC</text>
+<path d="M1032 316H1248" class="thin" />
+<text x="1038" y="344" class="pinName" >IN   VBAT</text>
+<text x="1038" y="371" class="pinName" >OUT  SERVO_V</text>
+<text x="1038" y="396" class="note" >电压按舵机铭牌冻结</text>
+<rect x="1280" y="274" width="218" height="135" rx="5" class="module module-signal"/>
+<text x="1298" y="305" class="moduleTitle" >U7  CAN LDO</text>
+<path d="M1292 316H1486" class="thin" />
+<text x="1298" y="344" class="pinName" >IN   5V_SYS</text>
+<text x="1298" y="371" class="pinName" >OUT  3V3_CAN</text>
+<text x="1298" y="396" class="note" >仅给两颗收发器</text>
+<path d="M1000 371V435H1270V371H1280" class="wireLogic" />
+<rect x="820" y="440" width="137" height="27" rx="3" class="tag tag-logic"/>
+<text x="829" y="460" class="tagText" >5V_CTRL / GND</text>
+<rect x="1080" y="440" width="146" height="27" rx="3" class="tag tag-servo"/>
+<text x="1089" y="460" class="tagText" >SERVO_V / PGND</text>
+<rect x="1317" y="412" width="181" height="110" rx="4" class="connector connector-logic"/>
+<text x="1332" y="439" class="moduleTitle" >J2  XH2.54-2P</text>
+<path d="M1327 450H1488" class="thin" />
+<circle cx="1336" cy="469" r="4" class="pin"/>
+<text x="1352" y="474" class="pinNo" >1</text>
+<text x="1373" y="474" class="pinName" >5V_CTRL</text>
+<circle cx="1336" cy="497" r="4" class="pin"/>
+<text x="1352" y="502" class="pinNo" >2</text>
+<text x="1373" y="502" class="pinName" >GND_CTRL</text>
+<rect x="1614" y="412" width="181" height="110" rx="4" class="connector connector-logic"/>
+<text x="1629" y="439" class="moduleTitle" >J2  XH2.54-2P</text>
+<path d="M1624 450H1785" class="thin" />
+<circle cx="1633" cy="469" r="4" class="pin"/>
+<text x="1649" y="474" class="pinNo" >1</text>
+<text x="1670" y="474" class="pinName" >5V_CTRL</text>
+<circle cx="1633" cy="497" r="4" class="pin"/>
+<text x="1649" y="502" class="pinNo" >2</text>
+<text x="1670" y="502" class="pinName" >GND_CTRL</text>
+<path d="M1498 474H1614" class="wireLogic" />
+<text x="1514" y="464" class="note" >5V</text>
+<rect x="107" y="655" width="325" height="187" rx="5" class="module module-signal"/>
+<text x="122" y="685" class="moduleTitle" >U1  SN65HVD230 · ZDT</text>
+<path d="M117 696H422" class="thin" />
+<text x="124" y="724" class="pinName" >1 D   ← PB13</text>
+<text x="124" y="751" class="pinName" >4 R   → PB12</text>
+<text x="124" y="778" class="pinName" >3 VCC  3V3_CAN</text>
+<text x="124" y="805" class="pinName" >7/6   ZDT H/L</text>
+<text x="124" y="830" class="note" >8 RS 单独配置 · 500 kbit/s</text>
+<rect x="107" y="883" width="325" height="187" rx="5" class="module module-signal"/>
+<text x="122" y="913" class="moduleTitle" >U2  SN65HVD230 · 达妙</text>
+<path d="M117 924H422" class="thin" />
+<text x="124" y="952" class="pinName" >1 D   ← PA12</text>
+<text x="124" y="979" class="pinName" >4 R   → PA11</text>
+<text x="124" y="1006" class="pinName" >3 VCC  3V3_CAN</text>
+<text x="124" y="1033" class="pinName" >7/6   DM H/L</text>
+<text x="124" y="1058" class="note" >8 RS 单独配置 · 1 Mbit/s</text>
+<rect x="107" y="1096" width="245" height="27" rx="3" class="tag tag-signal"/>
+<text x="116" y="1116" class="tagText" >CANH/L：TVS → 接口；120Ω 跳线可选</text>
+<rect x="107" y="1130" width="299" height="27" rx="3" class="tag tag-signal"/>
+<text x="116" y="1150" class="tagText" >U1/U2 各自 RS、100nF、TX/RX/H/L 测试点</text>
+<rect x="498" y="604" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="513" y="631" class="moduleTitle" >J3  ZDT #1 · XH4</text>
+<path d="M508 642H731" class="thin" />
+<circle cx="517" cy="661" r="4" class="pin"/>
+<text x="533" y="666" class="pinNo" >1</text>
+<text x="554" y="666" class="pinName" >GND_MOTOR</text>
+<circle cx="517" cy="689" r="4" class="pin"/>
+<text x="533" y="694" class="pinNo" >2</text>
+<text x="554" y="694" class="pinName" >VBAT_MOTOR</text>
+<circle cx="517" cy="717" r="4" class="pin"/>
+<text x="533" y="722" class="pinNo" >3</text>
+<text x="554" y="722" class="pinName" >ZDT_CANH</text>
+<circle cx="517" cy="745" r="4" class="pin"/>
+<text x="533" y="750" class="pinNo" >4</text>
+<text x="554" y="750" class="pinName" >ZDT_CANL</text>
+<text x="513" y="780" class="note" >四针同座：动力 + CAN</text>
+<rect x="772" y="604" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="787" y="631" class="moduleTitle" >J4  ZDT #2 · XH4</text>
+<path d="M782 642H1005" class="thin" />
+<circle cx="791" cy="661" r="4" class="pin"/>
+<text x="807" y="666" class="pinNo" >1</text>
+<text x="828" y="666" class="pinName" >GND_MOTOR</text>
+<circle cx="791" cy="689" r="4" class="pin"/>
+<text x="807" y="694" class="pinNo" >2</text>
+<text x="828" y="694" class="pinName" >VBAT_MOTOR</text>
+<circle cx="791" cy="717" r="4" class="pin"/>
+<text x="807" y="722" class="pinNo" >3</text>
+<text x="828" y="722" class="pinName" >ZDT_CANH</text>
+<circle cx="791" cy="745" r="4" class="pin"/>
+<text x="807" y="750" class="pinNo" >4</text>
+<text x="828" y="750" class="pinName" >ZDT_CANL</text>
+<text x="787" y="780" class="note" >四针同座：动力 + CAN</text>
+<rect x="1046" y="604" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="1061" y="631" class="moduleTitle" >J5  ZDT #3 · XH4</text>
+<path d="M1056 642H1279" class="thin" />
+<circle cx="1065" cy="661" r="4" class="pin"/>
+<text x="1081" y="666" class="pinNo" >1</text>
+<text x="1102" y="666" class="pinName" >GND_MOTOR</text>
+<circle cx="1065" cy="689" r="4" class="pin"/>
+<text x="1081" y="694" class="pinNo" >2</text>
+<text x="1102" y="694" class="pinName" >VBAT_MOTOR</text>
+<circle cx="1065" cy="717" r="4" class="pin"/>
+<text x="1081" y="722" class="pinNo" >3</text>
+<text x="1102" y="722" class="pinName" >ZDT_CANH</text>
+<circle cx="1065" cy="745" r="4" class="pin"/>
+<text x="1081" y="750" class="pinNo" >4</text>
+<text x="1102" y="750" class="pinName" >ZDT_CANL</text>
+<text x="1061" y="780" class="note" >四针同座：动力 + CAN</text>
+<rect x="498" y="806" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="513" y="833" class="moduleTitle" >J6  ZDT #4 · XH4</text>
+<path d="M508 844H731" class="thin" />
+<circle cx="517" cy="863" r="4" class="pin"/>
+<text x="533" y="868" class="pinNo" >1</text>
+<text x="554" y="868" class="pinName" >GND_MOTOR</text>
+<circle cx="517" cy="891" r="4" class="pin"/>
+<text x="533" y="896" class="pinNo" >2</text>
+<text x="554" y="896" class="pinName" >VBAT_MOTOR</text>
+<circle cx="517" cy="919" r="4" class="pin"/>
+<text x="533" y="924" class="pinNo" >3</text>
+<text x="554" y="924" class="pinName" >ZDT_CANH</text>
+<circle cx="517" cy="947" r="4" class="pin"/>
+<text x="533" y="952" class="pinNo" >4</text>
+<text x="554" y="952" class="pinName" >ZDT_CANL</text>
+<text x="513" y="982" class="note" >四针同座：动力 + CAN</text>
+<rect x="772" y="806" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="787" y="833" class="moduleTitle" >J7  ZDT #5 · XH4</text>
+<path d="M782 844H1005" class="thin" />
+<circle cx="791" cy="863" r="4" class="pin"/>
+<text x="807" y="868" class="pinNo" >1</text>
+<text x="828" y="868" class="pinName" >GND_MOTOR</text>
+<circle cx="791" cy="891" r="4" class="pin"/>
+<text x="807" y="896" class="pinNo" >2</text>
+<text x="828" y="896" class="pinName" >VBAT_MOTOR</text>
+<circle cx="791" cy="919" r="4" class="pin"/>
+<text x="807" y="924" class="pinNo" >3</text>
+<text x="828" y="924" class="pinName" >ZDT_CANH</text>
+<circle cx="791" cy="947" r="4" class="pin"/>
+<text x="807" y="952" class="pinNo" >4</text>
+<text x="828" y="952" class="pinName" >ZDT_CANL</text>
+<text x="787" y="982" class="note" >四针同座：动力 + CAN</text>
+<rect x="1046" y="806" width="243" height="187" rx="4" class="connector connector-power"/>
+<text x="1061" y="833" class="moduleTitle" >J8  ZDT #6 · XH4</text>
+<path d="M1056 844H1279" class="thin" />
+<circle cx="1065" cy="863" r="4" class="pin"/>
+<text x="1081" y="868" class="pinNo" >1</text>
+<text x="1102" y="868" class="pinName" >GND_MOTOR</text>
+<circle cx="1065" cy="891" r="4" class="pin"/>
+<text x="1081" y="896" class="pinNo" >2</text>
+<text x="1102" y="896" class="pinName" >VBAT_MOTOR</text>
+<circle cx="1065" cy="919" r="4" class="pin"/>
+<text x="1081" y="924" class="pinNo" >3</text>
+<text x="1102" y="924" class="pinName" >ZDT_CANH</text>
+<circle cx="1065" cy="947" r="4" class="pin"/>
+<text x="1081" y="952" class="pinNo" >4</text>
+<text x="1102" y="952" class="pinName" >ZDT_CANL</text>
+<text x="1061" y="982" class="note" >四针同座：动力 + CAN</text>
+<rect x="498" y="1000" width="342" height="187" rx="4" class="connector connector-power"/>
+<text x="513" y="1027" class="moduleTitle" >J9  达妙 · XT30(2+2)</text>
+<path d="M508 1038H830" class="thin" />
+<circle cx="517" cy="1057" r="4" class="pin"/>
+<text x="533" y="1062" class="pinNo" >1</text>
+<text x="554" y="1062" class="pinName" >DM_CANL（信号）</text>
+<circle cx="517" cy="1085" r="4" class="pin"/>
+<text x="533" y="1090" class="pinNo" >2</text>
+<text x="554" y="1090" class="pinName" >DM_CANH（信号）</text>
+<circle cx="517" cy="1113" r="4" class="pin"/>
+<text x="533" y="1118" class="pinNo" >3</text>
+<text x="554" y="1118" class="pinName" >GND_MOTOR（动力）</text>
+<circle cx="517" cy="1141" r="4" class="pin"/>
+<text x="533" y="1146" class="pinNo" >4</text>
+<text x="554" y="1146" class="pinName" >VBAT_MOTOR（动力）</text>
+<text x="513" y="1176" class="note" >符号顺序依旧图；插合面再核对</text>
+<rect x="866" y="1038" width="424" height="97" rx="4" class="warning"/>
+<text x="884" y="1069" class="body" >ZDT 六个 4P 口共用 FDCAN2 总线</text>
+<text x="884" y="1097" class="body" >仅在总线物理两端启用 120Ω 终端</text>
+<text x="884" y="1122" class="note" >XH 动力触点电流和线规需实测确认</text>
+<rect x="1326" y="603" width="191" height="390" rx="4" class="connector connector-signal"/>
+<text x="1339" y="630" class="moduleTitle" >J10  IDC 2×13</text>
+<text x="1339" y="651" class="note" >奇数=信号 偶数=GND</text>
+<path d="M1335 661H1508" class="thin" />
+<circle cx="1343" cy="683" r="3.5" class="pin"/>
+<text x="1355" y="688" class="pinNo" >1/2</text>
+<text x="1405" y="688" class="idcNet" >DM_TX</text>
+<circle cx="1343" cy="705" r="3.5" class="pin"/>
+<text x="1355" y="710" class="pinNo" >3/4</text>
+<text x="1405" y="710" class="idcNet" >DM_RX</text>
+<circle cx="1343" cy="727" r="3.5" class="pin"/>
+<text x="1355" y="732" class="pinNo" >5/6</text>
+<text x="1405" y="732" class="idcNet" >ZDT_TX</text>
+<circle cx="1343" cy="749" r="3.5" class="pin"/>
+<text x="1355" y="754" class="pinNo" >7/8</text>
+<text x="1405" y="754" class="idcNet" >ZDT_RX</text>
+<circle cx="1343" cy="771" r="3.5" class="pin"/>
+<text x="1355" y="776" class="pinNo" >9/10</text>
+<text x="1405" y="776" class="idcNet" >SERVO1</text>
+<circle cx="1343" cy="793" r="3.5" class="pin"/>
+<text x="1355" y="798" class="pinNo" >11/12</text>
+<text x="1405" y="798" class="idcNet" >SERVO2</text>
+<circle cx="1343" cy="815" r="3.5" class="pin"/>
+<text x="1355" y="820" class="pinNo" >13/14</text>
+<text x="1405" y="820" class="idcNet" >SERVO_EN</text>
+<circle cx="1343" cy="837" r="3.5" class="pin"/>
+<text x="1355" y="842" class="pinNo" >15/16</text>
+<text x="1405" y="842" class="idcNet" >LIGHT1</text>
+<circle cx="1343" cy="859" r="3.5" class="pin"/>
+<text x="1355" y="864" class="pinNo" >17/18</text>
+<text x="1405" y="864" class="idcNet" >LIGHT2</text>
+<circle cx="1343" cy="881" r="3.5" class="pin"/>
+<text x="1355" y="886" class="pinNo" >19/20</text>
+<text x="1405" y="886" class="idcNet" >CAM1_TX</text>
+<circle cx="1343" cy="903" r="3.5" class="pin"/>
+<text x="1355" y="908" class="pinNo" >21/22</text>
+<text x="1405" y="908" class="idcNet" >CAM1_RX</text>
+<circle cx="1343" cy="925" r="3.5" class="pin"/>
+<text x="1355" y="930" class="pinNo" >23/24</text>
+<text x="1405" y="930" class="idcNet" >CAM2_TX</text>
+<circle cx="1343" cy="947" r="3.5" class="pin"/>
+<text x="1355" y="952" class="pinNo" >25/26</text>
+<text x="1405" y="952" class="idcNet" >CAM2_RX</text>
+<text x="1339" y="982" class="note" >红边标识 1 脚</text>
+<rect x="1612" y="603" width="191" height="390" rx="4" class="connector connector-signal"/>
+<text x="1625" y="630" class="moduleTitle" >J1  IDC 2×13</text>
+<text x="1625" y="651" class="note" >奇数=信号 偶数=GND</text>
+<path d="M1621 661H1794" class="thin" />
+<circle cx="1629" cy="683" r="3.5" class="pin"/>
+<text x="1641" y="688" class="pinNo" >1/2</text>
+<text x="1691" y="688" class="idcNet" >DM_TX</text>
+<circle cx="1629" cy="705" r="3.5" class="pin"/>
+<text x="1641" y="710" class="pinNo" >3/4</text>
+<text x="1691" y="710" class="idcNet" >DM_RX</text>
+<circle cx="1629" cy="727" r="3.5" class="pin"/>
+<text x="1641" y="732" class="pinNo" >5/6</text>
+<text x="1691" y="732" class="idcNet" >ZDT_TX</text>
+<circle cx="1629" cy="749" r="3.5" class="pin"/>
+<text x="1641" y="754" class="pinNo" >7/8</text>
+<text x="1691" y="754" class="idcNet" >ZDT_RX</text>
+<circle cx="1629" cy="771" r="3.5" class="pin"/>
+<text x="1641" y="776" class="pinNo" >9/10</text>
+<text x="1691" y="776" class="idcNet" >SERVO1</text>
+<circle cx="1629" cy="793" r="3.5" class="pin"/>
+<text x="1641" y="798" class="pinNo" >11/12</text>
+<text x="1691" y="798" class="idcNet" >SERVO2</text>
+<circle cx="1629" cy="815" r="3.5" class="pin"/>
+<text x="1641" y="820" class="pinNo" >13/14</text>
+<text x="1691" y="820" class="idcNet" >SERVO_EN</text>
+<circle cx="1629" cy="837" r="3.5" class="pin"/>
+<text x="1641" y="842" class="pinNo" >15/16</text>
+<text x="1691" y="842" class="idcNet" >LIGHT1</text>
+<circle cx="1629" cy="859" r="3.5" class="pin"/>
+<text x="1641" y="864" class="pinNo" >17/18</text>
+<text x="1691" y="864" class="idcNet" >LIGHT2</text>
+<circle cx="1629" cy="881" r="3.5" class="pin"/>
+<text x="1641" y="886" class="pinNo" >19/20</text>
+<text x="1691" y="886" class="idcNet" >CAM1_TX</text>
+<circle cx="1629" cy="903" r="3.5" class="pin"/>
+<text x="1641" y="908" class="pinNo" >21/22</text>
+<text x="1691" y="908" class="idcNet" >CAM1_RX</text>
+<circle cx="1629" cy="925" r="3.5" class="pin"/>
+<text x="1641" y="930" class="pinNo" >23/24</text>
+<text x="1691" y="930" class="idcNet" >CAM2_TX</text>
+<circle cx="1629" cy="947" r="3.5" class="pin"/>
+<text x="1641" y="952" class="pinNo" >25/26</text>
+<text x="1691" y="952" class="idcNet" >CAM2_RX</text>
+<text x="1625" y="982" class="note" >红边标识 1 脚</text>
+<path d="M1517 719H1612" class="wireSig" />
+<path d="M1517 767H1612" class="wireSig" />
+<path d="M1517 815H1612" class="wireSig" />
+<path d="M1517 863H1612" class="wireSig" />
+<path d="M1517 911H1612" class="wireSig" />
+<path d="M1517 959H1612" class="wireSig" />
+<text x="1516" y="593" class="note" >26P 排线</text>
+<text x="1533" y="1108" class="note" >只传信号</text>
+<rect x="108" y="1260" width="250" height="159" rx="4" class="connector connector-servo"/>
+<text x="123" y="1287" class="moduleTitle" >J11  抓取舵机 3P</text>
+<path d="M118 1298H348" class="thin" />
+<circle cx="127" cy="1317" r="4" class="pin"/>
+<text x="143" y="1322" class="pinNo" >1</text>
+<text x="164" y="1322" class="pinName" >GND_SERVO</text>
+<circle cx="127" cy="1345" r="4" class="pin"/>
+<text x="143" y="1350" class="pinNo" >2</text>
+<text x="164" y="1350" class="pinName" >SERVO_V</text>
+<circle cx="127" cy="1373" r="4" class="pin"/>
+<text x="143" y="1378" class="pinNo" >3</text>
+<text x="164" y="1378" class="pinName" >PD12 PWM</text>
+<text x="123" y="1408" class="note" >功率回流直返电源区</text>
+<rect x="380" y="1260" width="250" height="159" rx="4" class="connector connector-servo"/>
+<text x="395" y="1287" class="moduleTitle" >J12  转盘舵机 3P</text>
+<path d="M390 1298H620" class="thin" />
+<circle cx="399" cy="1317" r="4" class="pin"/>
+<text x="415" y="1322" class="pinNo" >1</text>
+<text x="436" y="1322" class="pinName" >GND_SERVO</text>
+<circle cx="399" cy="1345" r="4" class="pin"/>
+<text x="415" y="1350" class="pinNo" >2</text>
+<text x="436" y="1350" class="pinName" >SERVO_V</text>
+<circle cx="399" cy="1373" r="4" class="pin"/>
+<text x="415" y="1378" class="pinNo" >3</text>
+<text x="436" y="1378" class="pinName" >PD13 PWM</text>
+<text x="395" y="1408" class="note" >SERVO_V 待型号确认</text>
+<rect x="650" y="1260" width="256" height="187" rx="4" class="connector connector-logic"/>
+<text x="665" y="1287" class="moduleTitle" >J13  视觉1 · XH4</text>
+<path d="M660 1298H896" class="thin" />
+<circle cx="669" cy="1317" r="4" class="pin"/>
+<text x="685" y="1322" class="pinNo" >1</text>
+<text x="706" y="1322" class="pinName" >GND</text>
+<circle cx="669" cy="1345" r="4" class="pin"/>
+<text x="685" y="1350" class="pinNo" >2</text>
+<text x="706" y="1350" class="pinName" >5V_CAM</text>
+<circle cx="669" cy="1373" r="4" class="pin"/>
+<text x="685" y="1378" class="pinNo" >3</text>
+<text x="706" y="1378" class="pinName" >PB15 MCU_RX</text>
+<circle cx="669" cy="1401" r="4" class="pin"/>
+<text x="685" y="1406" class="pinNo" >4</text>
+<text x="706" y="1406" class="pinName" >PB14 MCU_TX</text>
+<text x="665" y="1436" class="note" >线束随新版座重做</text>
+<rect x="925" y="1260" width="256" height="187" rx="4" class="connector connector-logic"/>
+<text x="940" y="1287" class="moduleTitle" >J14  视觉2 · XH4</text>
+<path d="M935 1298H1171" class="thin" />
+<circle cx="944" cy="1317" r="4" class="pin"/>
+<text x="960" y="1322" class="pinNo" >1</text>
+<text x="981" y="1322" class="pinName" >GND</text>
+<circle cx="944" cy="1345" r="4" class="pin"/>
+<text x="960" y="1350" class="pinNo" >2</text>
+<text x="981" y="1350" class="pinName" >5V_CAM</text>
+<circle cx="944" cy="1373" r="4" class="pin"/>
+<text x="960" y="1378" class="pinNo" >3</text>
+<text x="981" y="1378" class="pinName" >PA3 MCU_RX</text>
+<circle cx="944" cy="1401" r="4" class="pin"/>
+<text x="960" y="1406" class="pinNo" >4</text>
+<text x="981" y="1406" class="pinName" >PA2 MCU_TX</text>
+<text x="940" y="1436" class="note" >相机 TX 电平需核对</text>
+<rect x="1200" y="1260" width="284" height="159" rx="4" class="connector connector-signal"/>
+<text x="1215" y="1287" class="moduleTitle" >J15/16  补光 XH3</text>
+<path d="M1210 1298H1474" class="thin" />
+<circle cx="1219" cy="1317" r="4" class="pin"/>
+<text x="1235" y="1322" class="pinNo" >1</text>
+<text x="1256" y="1322" class="pinName" >GND</text>
+<circle cx="1219" cy="1345" r="4" class="pin"/>
+<text x="1235" y="1350" class="pinNo" >2</text>
+<text x="1256" y="1350" class="pinName" >灯电源</text>
+<circle cx="1219" cy="1373" r="4" class="pin"/>
+<text x="1235" y="1378" class="pinNo" >3</text>
+<text x="1256" y="1378" class="pinName" >PD1/PD2 PWM</text>
+<text x="1215" y="1408" class="note" >电流超 GPIO 能力加驱动</text>
+<rect x="108" y="1498" width="173" height="27" rx="3" class="tag tag-servo"/>
+<text x="117" y="1518" class="tagText" >舵机动力不走 IDC / 主控排针</text>
+<rect x="654" y="1498" width="137" height="27" rx="3" class="tag tag-logic"/>
+<text x="663" y="1518" class="tagText" >视觉 5V 在本板分支滤波</text>
+<rect x="1614" y="280" width="181" height="135" rx="5" class="module module-logic"/>
+<text x="1632" y="311" class="moduleTitle" >U3  3.3V</text>
+<path d="M1626 322H1783" class="thin" />
+<text x="1632" y="350" class="pinName" >IN   5V_CTRL</text>
+<text x="1632" y="377" class="pinName" >OUT  3V3_MCU</text>
+<text x="1632" y="402" class="note" >与核心板 LDO 二选一</text>
+<rect x="1845" y="275" width="633" height="648" rx="5" class="module module-quiet"/>
+<text x="1870" y="314" class="moduleTitle" >U_CORE  STM32H723ZGT6 核心板排座 · 2×30P</text>
+<path d="M1859 328H2465" class="thin" />
+<circle cx="1865" cy="367" r="4" class="pin"/>
+<text x="1882" y="372" class="pinName" >PA12 / PA11</text>
+<text x="2071" y="372" class="pinName" >FDCAN1_TX / RX → 达妙</text>
+<path d="M1865 391H2457" class="thin" />
+<circle cx="1865" cy="442" r="4" class="pin"/>
+<text x="1882" y="447" class="pinName" >PB13 / PB12</text>
+<text x="2071" y="447" class="pinName" >FDCAN2_TX / RX → ZDT</text>
+<path d="M1865 466H2457" class="thin" />
+<circle cx="1865" cy="517" r="4" class="pin"/>
+<text x="1882" y="522" class="pinName" >PD12 / PD13</text>
+<text x="2071" y="522" class="pinName" >TIM4_CH1 / CH2 → 舵机</text>
+<path d="M1865 541H2457" class="thin" />
+<circle cx="1865" cy="592" r="4" class="pin"/>
+<text x="1882" y="597" class="pinName" >PD0</text>
+<text x="2071" y="597" class="pinName" >SERVO_EN（拟分配）</text>
+<path d="M1865 616H2457" class="thin" />
+<circle cx="1865" cy="667" r="4" class="pin"/>
+<text x="1882" y="672" class="pinName" >PD1 / PD2</text>
+<text x="2071" y="672" class="pinName" >LIGHT_PWM1 / PWM2</text>
+<path d="M1865 691H2457" class="thin" />
+<circle cx="1865" cy="742" r="4" class="pin"/>
+<text x="1882" y="747" class="pinName" >PB14 / PB15</text>
+<text x="2071" y="747" class="pinName" >USART1_TX / RX → 视觉1</text>
+<path d="M1865 766H2457" class="thin" />
+<circle cx="1865" cy="817" r="4" class="pin"/>
+<text x="1882" y="822" class="pinName" >PA2 / PA3</text>
+<text x="2071" y="822" class="pinName" >USART2_TX / RX → 视觉2</text>
+<text x="1870" y="892" class="note" >3V3_MCU 与 PWR-IO 的 3V3_CAN 不并联；两板 GND 互通</text>
+<rect x="1614" y="1060" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="1628" y="1089" class="moduleTitle" >J3  HWT101 · XH4</text>
+<path d="M1624 1100H1884" class="thin" />
+<text x="1628" y="1128" class="pinName" >PE3 USART10_TX</text>
+<text x="1628" y="1155" class="pinName" >PE2 USART10_RX</text>
+<text x="1628" y="1182" class="pinName" >GND / 模块电源待核</text>
+<rect x="1910" y="1060" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="1924" y="1089" class="moduleTitle" >J4  I2C 传感器 · XH4</text>
+<path d="M1920 1100H2180" class="thin" />
+<text x="1924" y="1128" class="pinName" >PB6 SCL / PB7 SDA</text>
+<text x="1924" y="1155" class="pinName" >3V3_MCU / GND</text>
+<text x="1924" y="1182" class="pinName" >板侧上拉到 3.3V</text>
+<rect x="2206" y="1060" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="2220" y="1089" class="moduleTitle" >J5  串口屏 · XH4</text>
+<path d="M2216 1100H2476" class="thin" />
+<text x="2220" y="1128" class="pinName" >PB10 USART3_TX</text>
+<text x="2220" y="1155" class="pinName" >PB11 USART3_RX</text>
+<text x="2220" y="1182" class="pinName" >5V / GND</text>
+<rect x="1614" y="1230" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="1628" y="1259" class="moduleTitle" >J6  SWD</text>
+<path d="M1624 1270H1884" class="thin" />
+<text x="1628" y="1298" class="pinName" >PA13 SWDIO / PA14 SWCLK</text>
+<text x="1628" y="1325" class="pinName" >NRST / 3V3 / GND</text>
+<text x="1628" y="1352" class="pinName" >靠板边</text>
+<rect x="1910" y="1230" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="1924" y="1259" class="moduleTitle" >U4/U5  本地器件</text>
+<path d="M1920 1270H2180" class="thin" />
+<text x="1924" y="1298" class="pinName" >IPS200：SPI2 + CS/DC/RST</text>
+<text x="1924" y="1325" class="pinName" >W25Q64：SPI1 + PA4 CS</text>
+<text x="1924" y="1352" class="pinName" >本板就近去耦</text>
+<rect x="2206" y="1230" width="280" height="142" rx="5" class="module module-quiet"/>
+<text x="2220" y="1259" class="moduleTitle" >按键 / 调试</text>
+<path d="M2216 1270H2476" class="thin" />
+<text x="2220" y="1298" class="pinName" >PA0 START / PA1 STOP</text>
+<text x="2220" y="1325" class="pinName" >PC10/11 UART4</text>
+<text x="2220" y="1352" class="pinName" >STOP 动力切断另核</text>
+<rect x="1614" y="1400" width="872" height="192" rx="4" class="warning"/>
+<text x="1635" y="1435" class="moduleTitle" >设计校核提示</text>
+<text x="1635" y="1468" class="body" >① 牛角座两端 1 脚与排线红边，按实物逐针测通断；不能凭图像镜像。</text>
+<text x="1635" y="1500" class="body" >② CAN 收发器位于电源/信号板的安静信号区，远离开关节点和电机功率回路。</text>
+<text x="1635" y="1532" class="body" >③ 5V 模块、电机 XH 电流、舵机电压与堵转电流均待实测冻结。</text>
+<text x="1635" y="1564" class="body" >④ 本图为功能关系示意；正式原理图必须完成 ERC、PCB 完成 DRC。</text>
+<rect x="61" y="1662" width="2478" height="81" rx="0" class="frame"/>
+<path d="M1880 1662V1743M2190 1662V1743M2370 1662V1743" class="frame" />
+<text x="82" y="1692" class="moduleTitle" >工训智能搬运 · 双板电气关系</text>
+<text x="82" y="1723" class="footer" >源：2026-08-29 原理图、现行 .ioc、2026-09 接口讨论。所有连接器针序以正式 CAD + 线束通断复核为准。</text>
+<text x="1902" y="1692" class="footer" >图名：模块和接口关系图</text>
+<text x="1902" y="1723" class="footer" >性质：概念图 / 不可直接制板</text>
+<text x="2210" y="1692" class="footer" >版本</text>
+<text x="2210" y="1723" class="footer" >v0.3</text>
+<text x="2390" y="1692" class="footer" >日期</text>
+<text x="2390" y="1723" class="footer" >2026-09-23</text>
+</svg>

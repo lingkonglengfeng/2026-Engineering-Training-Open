@@ -1,0 +1,75 @@
+# MDK-ARM build output
+MDK-ARM/Engineering_Training_Project/
+MDK-ARM/DebugConfig/
+MDK-ARM/RTE/
+*.uvguix.*
+*.bak
+*.dep
+*.lst
+*.map
+*.o
+*.d
+*.crf
+*.htm
+*.lnp
+*.sct
+*.axf
+*.bin
+*.hex
+*.elf
+*.obj
+
+# CubeMX generated files (optional, keep for reference)
+# .mxproject
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.user
+*.suo
+*.uvoptx
+
+# Build directories
+build/
+Debug/
+Release/
+/out/
+/output/
+/sim/out/
+/sim/matlab/tmp_*
+/vision.zip
+/result.json
+/比赛版本/
+
+# 压缩包与临时文件
+*.tmp
+*.log
+
+tmp/
+.codex-finalizer/
+
+# Python 离线校验脚本的缓存
+__pycache__/
+*.pyc
+
+# Vendor documentation dumps (1.5 GB, not for git)
+docs/vendor/STM32H723ZGT6*/
+
+# Locally generated packages and device calibration
+*.zip
+*.7z
+*.rar
+**/dist/
+**/logs/
+**/screenshots/
+**/calibration.cam2.json
+.env
+.venv/

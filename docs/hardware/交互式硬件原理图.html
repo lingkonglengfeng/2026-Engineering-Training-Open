@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>智能搬运赛项 · 交互式硬件原理图（模块化选型）</title>
+<style>
+  :root{
+    --bg:#0e1319; --panel:#151c26; --line:#2a3542; --txt:#d8e0ea; --sub:#8b98a8;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overflow:hidden;}
+  body{background:var(--bg); color:var(--txt); font:14px/1.6 "Microsoft YaHei",system-ui,sans-serif; display:flex; flex-direction:column;}
+
+  #topbar{background:var(--panel); border-bottom:1px solid var(--line); padding:8px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; z-index:5;}
+  #topbar h1{font-size:16px; font-weight:600; margin-right:6px;}
+  #filters{display:flex; gap:8px; margin-left:auto; align-items:center; font-size:12.5px; flex-wrap:wrap;}
+  #filters .fbtn{background:#1d2836; color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:3px 10px; cursor:pointer; font-size:12.5px;}
+  #filters .fbtn.on{border-width:2px;}
+  #topbar .btn{background:#1d2836;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12.5px;}
+
+  #main{flex:1; display:flex; min-height:0;}
+  #svgwrap{flex:1; position:relative; min-width:0;}
+  svg#cv{width:100%; height:100%; display:block; cursor:grab;}
+  svg#cv.dragging{cursor:grabbing;}
+
+  .band{fill:#182230; stroke:#2c3a4e;}
+  .bandtxt{fill:#7d8fa6; font-size:14px; font-weight:600; letter-spacing:2px;}
+
+  .mod{cursor:pointer;}
+  .mod rect.box{rx:10; stroke-width:2.4; fill-opacity:.97;}
+  .mod text.t{font-size:17px; font-weight:700; text-anchor:middle; fill:#f4f8fc;}
+  .mod text.s{font-size:12.5px; text-anchor:middle; fill:#b6c3d3;}
+  .mod.dim{opacity:.38;}
+  .mod.sel rect.box{stroke-width:4;}
+  .mod.hl rect.box{stroke-width:4;}
+  .railtag{font-size:12px; font-weight:700; text-anchor:middle; paint-order:stroke; stroke:#10161f; stroke-width:3px;}
+
+  .stub{cursor:pointer;}
+  .stub rect{stroke-width:1;}
+  .stub text{font-size:12.5px; fill:#dbe5ef; paint-order:stroke; stroke:#10161f; stroke-width:4px;}
+
+  .net{fill:none; stroke-width:2.1; cursor:pointer; opacity:.92;}
+  .net.bus{stroke-width:3;}
+  .net.plannet{stroke-dasharray:5 4;}
+  .net.hl{stroke-width:3.6; opacity:1;}
+  .net.dim{opacity:.1;}
+  .netlbl{font-size:13.5px; fill:#c3d0de; paint-order:stroke; stroke:#10161f; stroke-width:4px; text-anchor:middle; cursor:pointer; display:none; font-weight:700;}
+  svg.lblmode .netlbl{display:inline;}
+  .netlbl.hl{display:inline; fill:#ffd35c;}
+
+  #side{width:410px; background:var(--panel); border-left:1px solid var(--line); padding:14px 16px; overflow-y:auto; flex-shrink:0;}
+  #side h2{font-size:17px; margin-bottom:2px;}
+  #side .meta{margin:6px 0 10px; display:flex; gap:6px; flex-wrap:wrap;}
+  .tag{font-size:11px; padding:1px 8px; border-radius:10px; border:1px solid var(--line); color:var(--sub);}
+  .tag.ok{color:#4fc08d;border-color:#4fc08d;}
+  .tag.tbd{color:#e0a34d;border-color:#e0a34d;}
+  .tag.plan{color:#7d8aa0;border-color:#7d8aa0;}
+  #side h3{font-size:13px; color:#4fc3c3; margin:14px 0 4px; letter-spacing:1px;}
+  #side ul{padding-left:18px; color:#bcc7d4; font-size:13px;}
+  #side li{margin-bottom:4px;}
+  #side li b{color:var(--txt);}
+  #side table{width:100%; border-collapse:collapse; font-size:12px; color:#bcc7d4;}
+  #side td,#side th{border:1px solid var(--line); padding:3px 6px; text-align:left;}
+  #side th{color:var(--sub); font-weight:600;}
+  #side .hint{color:var(--sub); font-size:12.5px;}
+  #side a{color:#5b9bd5; cursor:pointer; text-decoration:underline;}
+
+  #legend{position:absolute; right:12px; bottom:12px; background:#121924ee; border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--sub); z-index:4;}
+  #legend .row{display:flex; align-items:center; gap:6px; margin:2px 0;}
+  #legend .ln{width:22px; height:0; border-top:3px solid; display:inline-block;}
+  #legend .ln.dash{border-top-style:dashed;}
+  #toast{position:absolute; top:12px; left:50%; transform:translateX(-50%); background:#24405a; border:1px solid #5b9bd5; padding:6px 16px; border-radius:8px; font-size:13px; display:none; z-index:6;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>智能搬运 · 硬件原理图（模块化）</h1>
+  <div id="filters"></div>
+  <button class="btn" id="resetView">复位视图</button>
+</div>
+
+<div id="main">
+  <div id="svgwrap">
+    <svg id="cv"></svg>
+    <div id="legend"></div>
+    <div id="toast"></div>
+  </div>
+  <div id="side"></div>
+</div>
+
+<script>
+/* =====================================================================
+   数据：模块（含 MCU）+ 电气网络
+   所有引脚依据 docs/hardware/智能搬运赛项_引脚分配表.md（2026-08-25）
+   电源依据 智能搬运赛项_电源设计文档.md + 舵机供电电压分析.md
+   ===================================================================== */
+
+const RAIL = {
+  '22.2V':'#ffd35c', '12V':'#56b4e9', '6V':'#c77fd6', '5V':'#ff9a4d',
+  '3.3V':'#ff5f5f', 'GND':'#7a8794'
+};
+const TYPE = {
+  CAN:'#4fc08d', UART:'#5b9bd5', SPI:'#e0b34d', I2C:'#b07fd8',
+  PWM:'#e08b4d', KEY:'#9fb2c8', LED:'#d97f8f', SWD:'#4fc3c3'
+};
+
+/* ---------- 模块定义 ----------
+   pins 里 side 决定引脚柱在模块的哪条边；pos 为该边上的序号位置(0..1 相对)
+*/
+const MODS = [
+/* ===== 中央 MCU ===== */
+{id:'mcu', name:'STM32H723ZGT6', sub:'LQFP144 · Cortex-M7 550MHz（核心板/最小系统板）', x:1080,y:760,w:520,h:660, kind:'mcu', supply:'3.3V', status:'ok',
+ desc:'主控。建议使用 <b>H723 核心板/最小系统模块</b>（板载 LDO、晶振、NRST+BOOT0 电路、去耦电容），损坏可整体更换；若用裸片需自行搭最小系统。',
+ notes:['NRST：100nF 对地 + 复位按键（Pin25）','BOOT0：10kΩ 下拉到 GND，从 Flash 启动（Pin138）','每个 VDD 引脚就近 0.1µF + 总路 4.7~10µF 去耦','VDDA/VREF+ 接 3.3V 模拟滤波'],
+ supply_note:'3.3V 由 5V 轨经 LDO 模块（AMS1117-3.3/ME6211）或核心板板载 LDO 提供',
+ left:[ /* 左边：通信类 16 脚 */
+  {p:'PA11',  l:'FDCAN1_RX', pin:103}, {p:'PA12',  l:'FDCAN1_TX', pin:104},
+  {p:'PB12',  l:'FDCAN2_RX', pin:73},  {p:'PB13',  l:'FDCAN2_TX', pin:74},
+  {p:'PF6',   l:'FDCAN3_RX', pin:18},  {p:'PF7',   l:'FDCAN3_TX', pin:19},
+  {p:'PB14',  l:'USART1_TX', pin:75},  {p:'PB15',  l:'USART1_RX', pin:76},
+  {p:'PA2',   l:'USART2_TX', pin:36},  {p:'PA3',   l:'USART2_RX', pin:37},
+  {p:'PB10',  l:'USART3_TX', pin:69},  {p:'PB11',  l:'USART3_RX', pin:70},
+  {p:'PC10',  l:'UART4_TX',  pin:111}, {p:'PC11',  l:'UART4_RX',  pin:112},
+  {p:'PE2',   l:'USART10_RX', pin:1},  {p:'PE3',   l:'USART10_TX', pin:2},
+ ],
+ right:[ /* 右边：扩展/屏幕 11 脚 */
+  {p:'PA9',   l:'SPI2_SCK', pin:101},  {p:'PC1',   l:'SPI2_MOSI', pin:27},
+  {p:'PC6',   l:'IPS_CS',   pin:96},   {p:'PC7',   l:'IPS_DC',    pin:97},
+  {p:'PC8',   l:'IPS_RST',  pin:98},
+  {p:'PA5',   l:'SPI1_SCK', pin:41},   {p:'PA6',   l:'SPI1_MISO', pin:42},
+  {p:'PA7',   l:'SPI1_MOSI', pin:43},  {p:'PA4',   l:'SPI1_CS#',  pin:40},
+  {p:'PB6',   l:'I2C1_SCL', pin:136},  {p:'PB7',   l:'I2C1_SDA',  pin:137},
+ ],
+ bottom:[ /* 底边：执行/人机/调试 14 脚 */
+  {p:'PD12', l:'TIM4_CH1', pin:81}, {p:'PD13', l:'TIM4_CH2', pin:82},
+  {p:'PA0',  l:'KEY_START', pin:34}, {p:'PA1', l:'KEY_STOP', pin:35},
+  {p:'PA8',  l:'KEY_MODE', pin:100}, {p:'PA10', l:'KEY_DEBUG', pin:102},
+  {p:'PD0',  l:'LED_PWR', pin:114}, {p:'PD1', l:'LED_RUN', pin:115},
+  {p:'PD2',  l:'LED_ERR', pin:116}, {p:'PD3', l:'LED_COM', pin:117},
+  {p:'PA13', l:'SWDIO', pin:105},   {p:'PA14', l:'SWCLK', pin:109},
+  {p:'NRST', l:'NRST', pin:25},     {p:'BOOT0', l:'BOOT0', pin:138},
+ ]},
+
+/* ===== 左区：CAN 收发器与电机 ===== */
+{id:'can1', name:'SN65HVD230 收发器 #1', sub:'FDCAN1 · 机械臂总线 · 3.3V 供电', x:560,y:470,w:230,h:74, kind:'mod', type:'CAN', supply:'3.3V', status:'ok',
+ pins:[{p:'RXD',l:'',side:'right',t:0.32},{p:'TXD',l:'',side:'right',t:0.72},
+       {p:'CANH',l:'',side:'left',t:0.32},{p:'CANL',l:'',side:'left',t:0.72}],
+ desc:'CAN 收发器<b>成品模块</b>（SN65HVD230/SN65HVD231，3.3V 供电，与 MCU 电平直连）。模块自带 120Ω 终端电阻跳线：<b>总线末端模块跳线闭合，中间节点断开</b>。',
+ notes:['连接对象：达妙 DM4310 + 机械臂升降/前后 张大头35（总线归属待冻结）','波特率 500kbps 经典 CAN','冻结表约束：机械臂消息只走 FDCAN1'],
+ conns:'信号 XH2.54-4P（RXD/TXD/CANH/CANL 前级）'},
+{id:'can2', name:'SN65HVD230 收发器 #2', sub:'FDCAN2 · 底盘总线 · 3.3V 供电', x:560,y:590,w:230,h:74, kind:'mod', type:'CAN', supply:'3.3V', status:'ok',
+ pins:[{p:'RXD',l:'',side:'right',t:0.32},{p:'TXD',l:'',side:'right',t:0.72},
+       {p:'CANH',l:'',side:'left',t:0.32},{p:'CANL',l:'',side:'left',t:0.72}],
+ desc:'底盘总线收发器<b>成品模块</b>。4 个张大头 X42S 挂同一条总线，<b>末端节点 120Ω 闭合、其余断开</b>。',
+ notes:['四个底盘电机必须统一提交目标速度/位置，禁止只改单轮','节点速率必须与电机菜单一致（500kbps）'],
+ conns:'信号 XH2.54-4P'},
+{id:'can3', name:'SN65HVD230 收发器 #3', sub:'FDCAN3 · 预留', x:560,y:710,w:230,h:74, kind:'mod', type:'CAN', supply:'3.3V', status:'plan',
+ pins:[{p:'RXD',l:'',side:'right',t:0.32},{p:'TXD',l:'',side:'right',t:0.72},
+       {p:'CANH',l:'',side:'left',t:0.32},{p:'CANL',l:'',side:'left',t:0.72}],
+ desc:'预留扩展总线。建议同样使用 SN65HVD230 模块备用，比赛期间不接线。'},
+
+{id:'m_dm', name:'达妙 DM4310 电机', sub:'机械臂旋转轴 · CAN', x:130,y:455,w:280,h:86, kind:'mod', type:'CAN', supply:'22.2V→电机', status:'ok',
+ pins:[{p:'CANH',l:'',side:'right',t:0.3},{p:'CANL',l:'',side:'right',t:0.7}],
+ desc:'机械臂旋转轴关节电机（MIT 模式）。动力电 22.2V 直接供电（XT30），CAN 信号线挂 FDCAN1 总线。',
+ notes:['供电范围按达妙手册核实（约 20~34V 耐受，实测确认）','调试协议资料：docs/vendor/damiao/'],
+ conns:'动力 XT30 · 信号 XH2.54-4P（CANH/CANL）'},
+{id:'m_arm2', name:'张大头35 步进 ×2', sub:'机械臂升降 / 前后 · 总线归属待冻结', x:130,y:585,w:280,h:86, kind:'mod', type:'CAN', supply:'22.2V→电机', status:'tbd',
+ pins:[{p:'CANH',l:'',side:'right',t:0.3},{p:'CANL',l:'',side:'right',t:0.7}],
+ desc:'机械臂升降、前后两个张大头 35 步进。<b>挂 FDCAN1 还是独立总线尚未冻结</b>——图中暂画在机械臂总线（FDCAN1），冻结前不得施工。',
+ notes:['若上 FDCAN1：注意与达妙的报文 ID 规划互不冲突','120Ω 只在总线末端闭合一处'],
+ conns:'动力 XT30 · 信号 XH2.54-4P'},
+{id:'m_chassis', name:'张大头 X42S ×4', sub:'底盘四轮闭环步进 · FDCAN2', x:130,y:715,w:280,h:96, kind:'mod', type:'CAN', supply:'22.2V→电机', status:'ok',
+ pins:[{p:'CANH',l:'',side:'right',t:0.3},{p:'CANL',l:'',side:'right',t:0.7}],
+ desc:'底盘四轮。四台电机并挂在 FDCAN2 总线上，地址 1~4，末台 120Ω 闭合。',
+ notes:['四轮目标必须同一命令提交（冻结表 3.1）','CAN 速率索引与菜单逐台核对'],
+ conns:'动力 XT30 ×4（配电排） · 信号 XH2.54-4P 总线手拉手'},
+
+/* ===== 左下区：视觉与串口设备 ===== */
+{id:'cam1', name:'MaxiCAM #1', sub:'二维码识别 · USART1', x:470,y:1290,w:240,h:96, kind:'mod', type:'UART', supply:'5V', status:'ok',
+ pins:[{p:'RXD',l:'←PB14',side:'top',t:0.35},{p:'TXD',l:'→PB15',side:'top',t:0.75}],
+ desc:'二维码识别相机，输出 @QR ASCII 帧。5V 供电；<b>串口电平必须实测：若为 5V TTL，需加电平转换模块</b>（TXS0108E / 4 通道电平转换模块）。',
+ notes:['串口交叉连接：MCU TX→相机 RX，MCU RX←相机 TX','共地；帧协议见冻结表 §8'],
+ conns:'XH2.54-4P（5V/GND/TX/RX）'},
+{id:'cam2', name:'MaxiCAM #2', sub:'避障/颜色/圆环 · USART2', x:760,y:1290,w:240,h:96, kind:'mod', type:'UART', supply:'5V', status:'ok',
+ pins:[{p:'RXD',l:'←PA2',side:'top',t:0.35},{p:'TXD',l:'→PA3',side:'top',t:0.75}],
+ desc:'视觉避障/颜色/圆环识别相机，输出 @RING/@COLOR/@OBS 帧。供电与电平要求同 MaxiCAM #1。',
+ notes:['建议独立 BEC/DC-DC 分路供电，避免与主控共轨互扰','数据年龄超限不得用于闭环'],
+ conns:'XH2.54-4P'},
+{id:'hwt', name:'HWT101 姿态模块', sub:'Z轴陀螺仪 · USART10', x:205,y:1290,w:250,h:96, kind:'mod', type:'UART', supply:'3.3V(按铭牌)', status:'ok',
+ pins:[{p:'TXD',l:'→PE2',side:'top',t:0.35},{p:'RXD',l:'←PE3',side:'top',t:0.75}],
+ desc:'WIT 协议 TTL 串口姿态传感器，0x55 0x52/0x53 帧。<b>数据逻辑电平 3.3V</b>；若模块 TX 为 5V 必须加电平转换。供电按模块铭牌（通常 3.3~5V）。',
+ notes:['接线核验记录：2026-08-25 文档 §3.2','波特率由模块内部配置决定，无帧时先用上位机核实','只读使用时 RX 可不接，推荐保留'],
+ conns:'XH2.54-4P（VCC/GND/TX/RX）'},
+{id:'usartscr', name:'陶晶驰串口屏', sub:'任务/统计显示 · USART3', x:205,y:1440,w:250,h:96, kind:'mod', type:'UART', supply:'5V', status:'plan',
+ pins:[{p:'RXD',l:'←PB10',side:'top',t:0.35},{p:'TXD',l:'→PB11',side:'top',t:0.75}],
+ desc:'比赛数据显示屏（任务码、阶段、得分、故障码），5V 供电。页面协议待定，属 DisplayTask 独占。',
+ notes:['冻结表：5V/0.5A；与主控共地','字体 ≥12mm（规则要求）'],
+ conns:'XH2.54-4P'},
+{id:'usbtll', name:'USB-TTL 模块 (CH340)', sub:'调试日志 · UART4', x:470,y:1440,w:240,h:96, kind:'mod', type:'UART', supply:'5V(USB)', status:'ok',
+ pins:[{p:'RXD',l:'←PC10',side:'top',t:0.35},{p:'TXD',l:'→PC11',side:'top',t:0.75}],
+ desc:'调试/遥测串口。只发日志，不承载安全控制；比赛模式禁止接收任何运动命令。',
+ notes:['与电脑相连时注意 USB 供电倒灌——仅共地、不接模块 5V 到车电'],
+ conns:'XH2.54-4P / 杜邦'},
+
+/* ===== 右区：屏幕与扩展 ===== */
+{id:'ips', name:'IPS200 SPI 屏', sub:'2.0寸 320×240 · SPI2 · 调试屏', x:1720,y:470,w:250,h:150, kind:'mod', type:'SPI', supply:'3.3V', status:'ok',
+ pins:[{p:'SCL',l:'',side:'left',t:0.12},{p:'SDA',l:'',side:'left',t:0.28},
+       {p:'CS#',l:'',side:'left',t:0.44},{p:'DC', l:'',side:'left',t:0.60},{p:'RST#',l:'',side:'left',t:0.76}],
+ desc:'2.0 寸 IPS 屏（已在代码点屏）。<b>只能接 3.3V</b>；BLK 背光接 3.3V 常亮；MISO 不接（PC2_C 悬空）。',
+ notes:['CS#/RST# 低有效，空闲高','GND 必须与主控共地','比赛显示走 USART3 陶晶驰屏，本屏留作调试'],
+ conns:'排针/XH2.54-7P（3.3V/GND/SCL/SDA/CS/DC/RST）'},
+{id:'w25q', name:'W25Q64 模块', sub:'参数/日志存储 · SPI1 · 预留', x:1720,y:680,w:250,h:120, kind:'mod', type:'SPI', supply:'3.3V', status:'plan',
+ pins:[{p:'SCK',l:'',side:'left',t:0.16},{p:'MOSI',l:'',side:'left',t:0.4},
+       {p:'MISO',l:'',side:'left',t:0.64},{p:'CS#',l:'',side:'left',t:0.88}],
+ desc:'SPI Flash 参数存储<b>模块</b>（接参数表版本/黑匣子日志）。接入前：SPI1 改 8bit/MSB/降分频，PA4 片选改空闲高电平。',
+ notes:['WP#/HOLD# 上拉 3.3V','当前 spi.c 是 4BIT 配置不能直接用'],
+ conns:'排针 ×6'},
+{id:'i2c', name:'I2C1 扩展排针', sub:'通用传感器扩展 · 预留', x:1720,y:850,w:250,h:80, kind:'mod', type:'I2C', supply:'3.3V', status:'plan',
+ pins:[{p:'SCL',l:'',side:'left',t:0.35},{p:'SDA',l:'',side:'left',t:0.75}],
+ desc:'I2C1 开漏总线引出排针。<b>必须外接 4.7kΩ 上拉到 3.3V</b>（上拉排/电阻网络模块）。当前不接 HWT101。',
+ conns:'4P 排针（3.3V/GND/SCL/SDA）'},
+
+/* ===== 底区：执行器与人机 ===== */
+{id:'servo1', name:'抓取舵机 DS3218', sub:'6.0V · TIM4_CH1', x:1090,y:1310,w:230,h:96, kind:'mod', type:'PWM', supply:'6V(BEC独立)', status:'ok',
+ pins:[{p:'SIG',l:'←PD12',side:'top',t:0.5}],
+ desc:'物料抓取舵机（270° 实测行程待标定）。<b>必须由 6V 大电流 UBEC 独立供电</b>，严禁取主控 3.3V；信号地与功率地单点共地。',
+ notes:['脉宽 500~2500µs/50Hz，驱动已实测','启动电流尖峰大：BEC 输出端就近并 1000µF 电容','线径 ≥20AWG'],
+ conns:'JR 头 ×3（SIG/6V/GND）'},
+{id:'servo2', name:'转盘舵机 360°', sub:'6.0V · TIM4_CH2', x:1360,y:1310,w:230,h:96, kind:'mod', type:'PWM', supply:'6V(BEC独立)', status:'ok',
+ pins:[{p:'SIG',l:'←PD13',side:'top',t:0.5}],
+ desc:'原料区转盘舵机（360° 连续旋转型，6.0V 版）。供电要求同抓取舵机；行程/零位待机械标定。',
+ conns:'JR 头 ×3'},
+{id:'keys', name:'按键模块 ×4', sub:'START/STOP/MODE/DEBUG', x:1630,y:1310,w:250,h:120, kind:'mod', type:'KEY', supply:'—', status:'part',
+ pins:[{p:'START',l:'→PA0',side:'top',t:0.12},{p:'STOP',l:'→PA1',side:'top',t:0.37},
+       {p:'MODE',l:'→PA8',side:'top',t:0.63},{p:'DEBUG',l:'→PA10',side:'top',t:0.88}],
+ desc:'轻触按键<b>模块</b>（一带线），另一端全部接 GND，用 MCU 内部上拉，低电平有效。STOP 走 EXTI1 下降沿急停。',
+ notes:['<b>现状：EXTI 回调为空，急停未生效</b>','按键接线注意与 3.3V 域共地'],
+ conns:'XH2.54-4P ×2（每条集成两键）'},
+{id:'leds', name:'LED 指示灯板', sub:'PWR/RUN/ERR/COM', x:1890,y:1310,w:230,h:120, kind:'mod', type:'LED', supply:'3.3V', status:'plan',
+ pins:[{p:'PWR',l:'←PD0',side:'top',t:0.12},{p:'RUN',l:'←PD1',side:'top',t:0.37},
+       {p:'ERR',l:'←PD2',side:'top',t:0.63},{p:'COM',l:'←PD3',side:'top',t:0.88}],
+ desc:'4 个 LED（330Ω 限流）低电平点亮的指示灯板（洞洞板/PCB 均可）。3.3V 共阳。',
+ notes:['行为：PWR常亮 / RUN 1Hz / ERR 故障常亮 / COM 收发闪烁'],
+ conns:'XH2.54-4P ×1（四路一条线）'},
+{id:'swd', name:'DAP-Link 调试器', sub:'SWD 下载与调试', x:2140,y:1310,w:220,h:96, kind:'mod', type:'SWD', supply:'USB', status:'ok',
+ pins:[{p:'SWDIO',l:'→PA13',side:'top',t:0.3},{p:'SWCLK',l:'→PA14',side:'top',t:0.7}],
+ desc:'SWD 下载调试（现役 DAP-Link）。现场保留可插拔接口；批量烧录可换 ST-Link。',
+ conns:'XH2.54-4P（3.3V/GND/SWDIO/SWCLK）+ NRST 可选'},
+{id:'minsys', name:'最小系统件', sub:'NRST/BOOT0/去耦', x:1090,y:1470,w:230,h:96, kind:'mod', type:'KEY', supply:'3.3V', status:'plan',
+ pins:[{p:'NRST',l:'',side:'top',t:0.35},{p:'BOOT0',l:'',side:'top',t:0.75}],
+ desc:'若用裸片：复位按键+100nF、BOOT0 10kΩ 下拉、0.1µF×N 去耦、8MHz 晶振（HSE）。<b>用核心板模块则此盒全部板载自带</b>。',
+ notes:['推荐直接买 H723 核心板，省去本盒全部调试'],
+ conns:'—'},
+{id:'voltmon', name:'电池电压监测', sub:'ADC 分压采样 · 引脚待分配', x:1360,y:1470,w:230,h:96, kind:'mod', type:'KEY', supply:'—', status:'tbd',
+ pins:[{p:'ADC',l:'→待分配',side:'top',t:0.5}],
+ desc:'电阻分压网络（如 22.2V→1/11）+ RC 滤波接 ADC，监测电池电压做低压告警。<b>ADC 引脚未在 .ioc 分配，接线前先冻结</b>。',
+ notes:['分压比按 ADC 量程 3.3V 设计','建议串 1k + 100nF 一阶滤波']},
+{id:'limit', name:'限位 / 载物台检测', sub:'引脚待冻结 · 器件待选', x:1630,y:1470,w:250,h:96, kind:'mod', type:'KEY', supply:'3.3V', status:'tbd',
+ pins:[{p:'S1..S4',l:'→待分配',side:'top',t:0.5}],
+ desc:'机械限位开关模块（带轮/光电）+ 载物台物料检测（微动开关或红外对管模块）。<b>原 PC0/PC1/PC4/PC5 方案已失效（PC1 让给 SPI2），新引脚必须在接线前重新分配并写入 .ioc</b>。',
+ notes:['载物确认是抓取流程硬门禁（PAYLOAD_MISSING）','全部用 MCU 内部上拉、开关接地'],
+ conns:'XH2.54-4P ×1'},
+{id:'light', name:'LED 补光灯', sub:'12V 恒定补光 · 视觉辅助', x:1890,y:1470,w:230,h:96, kind:'mod', type:'LED', supply:'12V', status:'plan',
+ pins:[],
+ desc:'12V LED 补光灯条/模块，由 LM2596-12V 模块独立供电，改善视觉识别光照稳定性。',
+ notes:['不接 MCU 任何信号（纯电源负载）','必要时加继电器/开关'],
+ conns:'模块螺丝端子 → XH2.54-2P 成品线（20AWG 不直接压 XH）'},
+];
+
+/* ---------- 电源树（顶部） ---------- */
+const POWER = [
+ {id:'bat',  name:'6S 锂电池 22.2V', sub:'5000mAh · XT30', x:120, y:120, w:220, h:80, supply:'22.2V',
+  desc:'格氏 6S 5000mAh（22.2V）。整机能量来源，动力线用 XT30（全车动力插头统一 XT30）。',
+  notes:['充电与存放按锂电安全规范','大电流回路（电机）线径 ≥14AWG']},
+ {id:'sw',   name:'主开关', sub:'由主空开兼任（或保留船型开关）', x:400, y:120, w:190, h:80, supply:'22.2V',
+  desc:'总通断入口。<b>已确定方案：由主直流空开 C20 兼任总开关</b>，船型开关可省去；若保留则空开在其后。',
+  notes:['额定电流 ≥15A','带防反接更稳（MOS/二极管）']},
+ {id:'fuse', name:'主直流空开 C20', sub:'1P · DC250V · C曲线 · 无分支保险方案', x:630, y:120, w:230, h:80, supply:'22.2V',
+  desc:'<b>唯一一级保护</b>：1P 直流微型断路器，额定 20A（DC 250V 档），C 曲线（磁脱扣 100~200A 瞬断短路，热脱扣 ≈29A 慢速防过载起火），分断能力 ≥6kA。<b>不加保险丝</b>：各分支均为带自保护的成品模块（LM2596/UBEC 限流、电机驱动器过流保护），分支短路由模块自保护兜底。',
+  notes:['干线电流实测：持续 ≈8~15A，极端峰值 ≈26A（1.3×In，热脱扣数十分钟才动作，不误跳）','主干线 ≥14AWG','TVS 建议由 SMBJ24A 改 SMBJ26A：6S 满电 25.2V 贴近 24A 档 26.7V 击穿下限','比赛跳闸=整车断电，手柄复位即恢复']},
+ {id:'bus22',name:'V_MOTOR 22.2V', sub:'电机动力配电', x:920, y:120, w:200, h:80, supply:'22.2V',
+  desc:'电池直接供电：达妙 DM4310、张大头 35×2、张大头 X42S×4。',
+  notes:['电机堵转电流大，配电排/粗线，独立保险分支']},
+ {id:'dcdc12',name:'LM2596-12V 模块', sub:'22.2V → 12V · 1A', x:1180, y:120, w:210, h:80, supply:'22.2V',
+  desc:'成品 DC-DC 降压<b>模块</b>，给 LED 补光灯独立供电，避免灯的纹波污染 5V/3.3V 轨。',
+  notes:['输入 100µF/50V + 输出 220µF/25V']},
+ {id:'dcdc6', name:'UBEC 6V 大电流', sub:'22.2V → 6.0V · ≥5A', x:1450, y:120, w:210, h:80, supply:'22.2V',
+  desc:'舵机专用<b>大电流 UBEC 模块</b>（6.0V ≥5A）。DS3218 在 6V 扭矩/发热最均衡（舵机供电分析文档结论）。',
+  notes:['输出端并 1000µF 电容吸收舵机启动尖峰','只给两路舵机，不并其他负载','输出用模块自带 JR 线对插舵机（20AWG 不直接压 XH/JR 端子）']},
+ {id:'dcdc5', name:'LM2596-5V 模块', sub:'22.2V → 5V · ≥3A', x:1720, y:120, w:210, h:80, supply:'22.2V',
+  desc:'逻辑 5V 轨：MaxiCAM ×2、陶晶驰屏。<b>注意：电源文档拓扑里此轨写的是 6.0V，与需求表 5V 矛盾——按需求表与器件耐压执行 5V，硬件组确认后回写文档</b>。',
+  notes:['相机/屏对纹波敏感，输出加电容','与舵机 6V 轨严格分开','输出经模块端子直出 XH2.54 成品线到设备（20AWG 不直接压 XH 端子）']},
+ {id:'ldo',  name:'LDO 3.3V 模块', sub:'5V → 3.3V · 0.8A', x:1990, y:120, w:210, h:80, supply:'5V',
+  desc:'AMS1117-3.3/ME6211 稳压<b>模块</b>（或核心板板载）：MCU、IPS200、HWT101、W25Q64、I2C 上拉。',
+  notes:['核心板自带 LDO 时本模块可省']},
+];
+/* 电源树连线 */
+const PWIRES = [
+ {f:'bat', t:'sw'}, {f:'sw', t:'fuse'}, {f:'fuse', t:'bus22'},
+ {f:'fuse', t:'dcdc12'}, {f:'fuse', t:'dcdc6'}, {f:'fuse', t:'dcdc5'},
+ {f:'dcdc5', t:'ldo'},
+];
+
+/* ---------- 信号网络 ----------
+   每条：{id, type, from:{mod,pin}, to:{mod,pin}}
+   bus 总线：segs 为 H/L 两段走线，drops 为下挂端点（侧栏展示）
+*/
+const NETS = [
+ /* CAN 前级 */
+ {id:'n_can1rx', type:'CAN', f:{m:'mcu',p:'PA11'}, t:{m:'can1',p:'RXD'}, l:'CAN1_RX'},
+ {id:'n_can1tx', type:'CAN', f:{m:'mcu',p:'PA12'}, t:{m:'can1',p:'TXD'}, l:'CAN1_TX'},
+ {id:'n_can2rx', type:'CAN', f:{m:'mcu',p:'PB12'}, t:{m:'can2',p:'RXD'}, l:'CAN2_RX'},
+ {id:'n_can2tx', type:'CAN', f:{m:'mcu',p:'PB13'}, t:{m:'can2',p:'TXD'}, l:'CAN2_TX'},
+ {id:'n_can3rx', type:'CAN', f:{m:'mcu',p:'PF6'},  t:{m:'can3',p:'RXD'}, l:'CAN3_RX', plan:true},
+ {id:'n_can3tx', type:'CAN', f:{m:'mcu',p:'PF7'},  t:{m:'can3',p:'TXD'}, l:'CAN3_TX', plan:true},
+ /* CAN 总线（H/L 双绞，多节点） */
+ {id:'n_bus1', type:'CAN', bus:true,
+   f:{m:'can1',p:'CANH'}, t:{m:'m_dm',p:'CANH'},
+   segs:[[{m:'can1',p:'CANH'},{m:'m_dm',p:'CANH'}],
+         [{m:'can1',p:'CANL'},{m:'m_arm2',p:'CANL'}]],
+   drops:[{m:'can1',p:'CANL'},{m:'m_arm2',p:'CANH'},{m:'m_arm2',p:'CANL'},{m:'m_dm',p:'CANL'}],
+   l:'机械臂 CAN 总线 H/L（终端120Ω×1）'},
+ {id:'n_bus2', type:'CAN', bus:true,
+   f:{m:'can2',p:'CANH'}, t:{m:'m_chassis',p:'CANH'},
+   segs:[[{m:'can2',p:'CANH'},{m:'m_chassis',p:'CANH'}],
+         [{m:'can2',p:'CANL'},{m:'m_chassis',p:'CANL'}]],
+   drops:[{m:'can2',p:'CANL'},{m:'m_chassis',p:'CANL'}],
+   l:'底盘 CAN 总线 H/L（末端120Ω）'},
+ /* 视觉/串口 */
+ {id:'n_u1tx', type:'UART', f:{m:'mcu',p:'PB14'}, t:{m:'cam1',p:'RXD'}, l:'USART1_TX'},
+ {id:'n_u1rx', type:'UART', f:{m:'mcu',p:'PB15'}, t:{m:'cam1',p:'TXD'}, l:'USART1_RX'},
+ {id:'n_u2tx', type:'UART', f:{m:'mcu',p:'PA2'},  t:{m:'cam2',p:'RXD'}, l:'USART2_TX'},
+ {id:'n_u2rx', type:'UART', f:{m:'mcu',p:'PA3'},  t:{m:'cam2',p:'TXD'}, l:'USART2_RX'},
+ {id:'n_u3tx', type:'UART', f:{m:'mcu',p:'PB10'}, t:{m:'usartscr',p:'RXD'}, l:'USART3_TX', plan:true},
+ {id:'n_u3rx', type:'UART', f:{m:'mcu',p:'PB11'}, t:{m:'usartscr',p:'TXD'}, l:'USART3_RX', plan:true},
+ {id:'n_u4tx', type:'UART', f:{m:'mcu',p:'PC10'}, t:{m:'usbtll',p:'RXD'}, l:'UART4_TX'},
+ {id:'n_u4rx', type:'UART', f:{m:'mcu',p:'PC11'}, t:{m:'usbtll',p:'TXD'}, l:'UART4_RX'},
+ {id:'n_imurx',type:'UART', f:{m:'mcu',p:'PE2'},  t:{m:'hwt',p:'TXD'}, l:'USART10_RX(HWT101→)'},
+ {id:'n_imutx',type:'UART', f:{m:'mcu',p:'PE3'},  t:{m:'hwt',p:'RXD'}, l:'USART10_TX(配置)'},
+ /* SPI2 屏幕 */
+ {id:'n_s2ck', type:'SPI', f:{m:'mcu',p:'PA9'}, t:{m:'ips',p:'SCL'}, l:'SPI2_SCK'},
+ {id:'n_s2mo', type:'SPI', f:{m:'mcu',p:'PC1'}, t:{m:'ips',p:'SDA'}, l:'SPI2_MOSI'},
+ {id:'n_s2cs', type:'SPI', f:{m:'mcu',p:'PC6'}, t:{m:'ips',p:'CS#'}, l:'IPS_CS#'},
+ {id:'n_s2dc', type:'SPI', f:{m:'mcu',p:'PC7'}, t:{m:'ips',p:'DC'},  l:'IPS_DC'},
+ {id:'n_s2rs', type:'SPI', f:{m:'mcu',p:'PC8'}, t:{m:'ips',p:'RST#'},l:'IPS_RST#'},
+ /* SPI1 W25Q64 */
+ {id:'n_s1ck', type:'SPI', f:{m:'mcu',p:'PA5'}, t:{m:'w25q',p:'SCK'},  l:'SPI1_SCK', plan:true},
+ {id:'n_s1mi', type:'SPI', f:{m:'mcu',p:'PA6'}, t:{m:'w25q',p:'MISO'}, l:'SPI1_MISO', plan:true},
+ {id:'n_s1mo', type:'SPI', f:{m:'mcu',p:'PA7'}, t:{m:'w25q',p:'MOSI'}, l:'SPI1_MOSI', plan:true},
+ {id:'n_s1cs', type:'SPI', f:{m:'mcu',p:'PA4'}, t:{m:'w25q',p:'CS#'},  l:'SPI1_CS#', plan:true},
+ /* I2C1 */
+ {id:'n_i2c1', type:'I2C', f:{m:'mcu',p:'PB6'}, t:{m:'i2c',p:'SCL'}, l:'I2C1_SCL(4.7k上拉)', plan:true},
+ {id:'n_i2c2', type:'I2C', f:{m:'mcu',p:'PB7'}, t:{m:'i2c',p:'SDA'}, l:'I2C1_SDA(4.7k上拉)', plan:true},
+ /* PWM */
+ {id:'n_sv1', type:'PWM', f:{m:'mcu',p:'PD12'}, t:{m:'servo1',p:'SIG'}, l:'SERVO1_PWM'},
+ {id:'n_sv2', type:'PWM', f:{m:'mcu',p:'PD13'}, t:{m:'servo2',p:'SIG'}, l:'SERVO2_PWM'},
+ /* 按键 */
+ {id:'n_k1', type:'KEY', f:{m:'mcu',p:'PA0'},  t:{m:'keys',p:'START'}, l:'KEY_START'},
+ {id:'n_k2', type:'KEY', f:{m:'mcu',p:'PA1'},  t:{m:'keys',p:'STOP'},  l:'KEY_STOP/EXTI1'},
+ {id:'n_k3', type:'KEY', f:{m:'mcu',p:'PA8'},  t:{m:'keys',p:'MODE'},  l:'KEY_MODE'},
+ {id:'n_k4', type:'KEY', f:{m:'mcu',p:'PA10'}, t:{m:'keys',p:'DEBUG'}, l:'KEY_DEBUG'},
+ /* LED */
+ {id:'n_l1', type:'LED', f:{m:'mcu',p:'PD0'}, t:{m:'leds',p:'PWR'}, l:'LED_PWR'},
+ {id:'n_l2', type:'LED', f:{m:'mcu',p:'PD1'}, t:{m:'leds',p:'RUN'}, l:'LED_RUN'},
+ {id:'n_l3', type:'LED', f:{m:'mcu',p:'PD2'}, t:{m:'leds',p:'ERR'}, l:'LED_ERR'},
+ {id:'n_l4', type:'LED', f:{m:'mcu',p:'PD3'}, t:{m:'leds',p:'COM'}, l:'LED_COM'},
+ /* SWD */
+ {id:'n_swdio', type:'SWD', f:{m:'mcu',p:'PA13'}, t:{m:'swd',p:'SWDIO'}, l:'SWDIO'},
+ {id:'n_swclk', type:'SWD', f:{m:'mcu',p:'PA14'}, t:{m:'swd',p:'SWCLK'}, l:'SWCLK'},
+];
+
+/* =====================================================================
+   渲染
+   ===================================================================== */
+const W = 2400, H = 2100;
+const svg = document.getElementById('cv');
+const NS = 'http://www.w3.org/2000/svg';
+/* 初始视图：就近可读的比例（而不是整图缩小到看不清），可滚轮缩小看全局 */
+let vb = {x:380, y:330, w:1500, h:1125};
+let selMod = null, selNet = null;
+const TYPEFILTERS = [['ALL','全部'],['CAN','CAN'],['UART','串口'],['SPI','SPI'],['I2C','I2C'],['PWM','PWM'],['KEY','按键/输入'],['LED','指示'],['SWD','调试']];
+let curType = 'ALL';
+
+const MMAP = {}; MODS.forEach(m=>MMAP[m.id]=m);
+const PMAP = {}; POWER.forEach(m=>PMAP[m.id]=m);
+
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent||svg).appendChild(e); return e;
+}
+function applyVB(){
+  svg.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  /* 放大到足够近时才显示网络名标签，避免整图视角下标签互相重叠 */
+  svg.classList.toggle('lblmode', vb.w <= 1300);
+}
+
+/* 计算模块引脚柱的绝对坐标 */
+function stubPos(modId, pinName){
+  const m = MMAP[modId];
+  if(!m) return null;
+  const list = pinName==='CANH' ? (m.pins||[]).filter(p=>p.p==='CANH')
+             : m.pins || [];
+  /* MCU 的引脚在 left/right/bottom 数组里 */
+  if(m.kind==='mcu'){
+    const inLeft = m.left.find(p=>p.p===pinName);
+    const inRight = m.right.find(p=>p.p===pinName);
+    const inBottom = m.bottom.find(p=>p.p===pinName);
+    if(inLeft){ const idx = m.left.indexOf(inLeft), n = m.left.length;
+      return {x:m.x-m.w/2, y:m.y-m.h/2 + m.h*(idx+0.5)/n, side:'L'}; }
+    if(inRight){ const idx = m.right.indexOf(inRight), n = m.right.length;
+      return {x:m.x+m.w/2, y:m.y-m.h/2 + m.h*(idx+0.5)/n, side:'R'}; }
+    if(inBottom){ const idx = m.bottom.indexOf(inBottom), n = m.bottom.length;
+      return {x:m.x-m.w/2 + m.w*(idx+0.5)/n, y:m.y+m.h/2, side:'B'}; }
+    return null;
+  }
+  const pin = (m.pins||[]).find(p=>p.p===pinName);
+  if(!pin) return null;
+  if(pin.side==='right') return {x:m.x+m.w/2, y:m.y-m.h/2 + m.h*pin.t, side:'R'};
+  if(pin.side==='left')  return {x:m.x-m.w/2, y:m.y-m.h/2 + m.h*pin.t, side:'L'};
+  if(pin.side==='top')   return {x:m.x-m.w/2 + m.w*pin.t, y:m.y-m.h/2, side:'T'};
+  if(pin.side==='bottom')return {x:m.x-m.w/2 + m.w*pin.t, y:m.y+m.h/2, side:'B'};
+  return null;
+}
+
+let gEdges, gMods, gPower, gRoot;
+function build(){
+  svg.innerHTML='';
+  gRoot = el('g',{});
+  /* 区域带 */
+  el('rect',{class:'band', x:40,y:60,  width:W-100, height:200, rx:14}, gRoot);
+  el('text',{class:'bandtxt', x:56, y:86}, gRoot).textContent='电源树（全成品模块 · 各轨独立 · 单点共地）';
+  el('rect',{class:'band', x:40,y:290, width:640, height:640, rx:14}, gRoot);
+  el('text',{class:'bandtxt', x:56, y:316}, gRoot).textContent='CAN 总线区';
+  el('rect',{class:'band', x:60,y:1200, width:940, height:420, rx:14}, gRoot);
+  el('text',{class:'bandtxt', x:76, y:1226}, gRoot).textContent='视觉 / 串口设备（5V·3.3V 按模块铭牌）';
+  el('rect',{class:'band', x:1580,y:400, width:380, height:560, rx:14}, gRoot);
+  el('text',{class:'bandtxt', x:1596, y:426}, gRoot).textContent='存储 / 扩展';
+  el('rect',{class:'band', x:940,y:1240, width:1330, height:380, rx:14}, gRoot);
+  el('text',{class:'bandtxt', x:956, y:1266}, gRoot).textContent='执行器 / 人机 / 调试';
+  /* 电源树 */
+  gPower = el('g',{}, gRoot);
+  PWIRES.forEach(w=>{
+    const a=PMAP[w.f], b=PMAP[w.t];
+    const col = RAIL[b.supply] || RAIL[a.supply] || '#ffd35c';
+    let d;
+    if(Math.abs(a.y-b.y)<5){
+      const adjacent = Math.abs(a.x-b.x) < (a.w+b.w)/2 + 40;
+      if(adjacent){
+        /* 相邻：右边缘 → 左边缘直线 */
+        const x1 = a.x + (b.x>a.x ? a.w/2 : -a.w/2);
+        const x2 = b.x + (b.x>a.x ? -b.w/2 : b.w/2);
+        d = `M${x1},${a.y} L${x2},${b.y}`;
+      } else {
+        /* 分支供电：从盒底部绕行到目标盒底部（不穿过中间模块） */
+        const y1 = a.y + a.h/2, y2 = b.y + b.h/2;
+        const droop = Math.max(y1,y2) + 42;
+        d = `M${a.x},${y1} C ${a.x},${droop} ${b.x},${droop} ${b.x},${y2}`;
+      }
+    } else {
+      const x1=a.x+a.w/2, x2=b.x+b.w/2;
+      d = `M${x1},${a.y+a.h/2} C ${x1},${a.y+a.h/2+40} ${x2},${b.y-40} ${x2},${b.y-b.h/2}`;
+    }
+    el('path',{d, stroke:col,'stroke-width':3, fill:'none', opacity:.8}, gPower);
+  });
+  POWER.forEach(p=>{
+    const g = el('g',{class:'mod','data-id':p.id}, gPower);
+    el('rect',{class:'box', x:p.x-p.w/2, y:p.y-p.h/2, width:p.w, height:p.h, fill:'#1a2331', stroke:RAIL[p.supply]}, g);
+    const t = el('text',{class:'t', x:p.x, y:p.y-4}, g); t.textContent=p.name;
+    const s = el('text',{class:'s', x:p.x, y:p.y+16}, g); s.textContent=p.sub;
+    g.addEventListener('click', ev=>{ev.stopPropagation(); showPower(p.id);});
+    p.gEl=g;
+  });
+  /* 信号网络 */
+  gEdges = el('g',{}, gRoot);
+  NETS.forEach(n=>drawNet(n));  /* 模块 */
+  gMods = el('g',{}, gRoot);
+  MODS.forEach(m=>drawMod(m));
+  applyVB();
+}
+
+function netPathD(a, b){
+  if(a.side==='R' && b.side==='L'){
+    const dx = Math.max(80, (b.x-a.x)*0.4);
+    return `M${a.x},${a.y} C ${a.x+dx},${a.y} ${b.x-dx},${b.y} ${b.x},${b.y}`;
+  }
+  if(a.side==='L' && b.side==='R'){
+    const dx = Math.max(80, (a.x-b.x)*0.4);
+    return `M${a.x},${a.y} C ${a.x-dx},${a.y} ${b.x+dx},${b.y} ${b.x},${b.y}`;
+  }
+  if(a.side==='B' && b.side==='T' && b.y > a.y){
+    /* 底边→顶边：先垂直引出再折弯，避免出线口挤成一团 */
+    const d1 = 52, d2 = 70;
+    return `M${a.x},${a.y} L${a.x},${a.y+d1} C ${a.x},${a.y+d1+d2} ${b.x},${b.y-d1-d2} ${b.x},${b.y-d2} L${b.x},${b.y}`;
+  }
+  if(a.side==='B' || b.side==='T' || a.side==='T' || b.side==='B'){
+    return `M${a.x},${a.y} C ${a.x},${a.y+70} ${b.x},${b.y-70} ${b.x},${b.y}`;
+  }
+  const mx = (a.x+b.x)/2;
+  return `M${a.x},${a.y} C ${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`;
+}
+
+function drawNet(n){
+  const c = TYPE[n.type];
+  const cls = 'net' + (n.bus?' bus':'') + (n.plan?' plannet':'');
+  const segs = n.segs || [[n.f, n.t]];
+  n.paths = [];
+  let first=null, last=null;
+  segs.forEach(([fp,tp])=>{
+    const a = stubPos(fp.m, fp.p), b = stubPos(tp.m, tp.p);
+    if(!a||!b) return;
+    if(!first){ first = {a, b}; }
+    last = {a, b};
+    const path = el('path',{class:cls, d:netPathD(a,b), stroke:c}, gEdges);
+    n.paths.push(path);
+    [ [a], [b] ].forEach(([p])=>{
+      el('rect',{x:p.x-3.5, y:p.y-3.5, width:7, height:7, fill:c, stroke:'#0e1319'}, gEdges);
+    });
+    path.addEventListener('click', ev=>{ev.stopPropagation(); showNet(n.id);});
+    path.addEventListener('mouseenter', ()=>hlNet(n.id));
+    path.addEventListener('mouseleave', ()=>hlNet(null));
+  });
+  if(!first) return;
+  /* 网络名标签 */
+  if(n.l){
+    n.lblEl = el('text',{class:'netlbl', x:(first.a.x+last.b.x)/2, y:(first.a.y+last.b.y)/2-8}, gEdges);
+    n.lblEl.textContent = n.l;
+    n.lblEl.addEventListener('click', ev=>{ev.stopPropagation(); showNet(n.id);});
+  }
+}
+
+function drawMod(m){
+  const g = el('g',{class:'mod','data-id':m.id}, gMods);
+  const border = m.kind==='mcu' ? '#e8eef6' : (TYPE[m.type]||'#5b9bd5');
+  const fill = m.kind==='mcu' ? '#2c3d5a' : (m.status==='tbd' ? '#4d3440' : '#25344c');
+  el('rect',{class:'box', x:m.x-m.w/2, y:m.y-m.h/2, width:m.w, height:m.h, rx:10, fill, stroke:border,
+    'stroke-dasharray': (m.status==='tbd'||m.status==='plan')?'6 4':'none'}, g);
+  const t = el('text',{class:'t', x:m.x, y:m.y-(m.sub?10:-4)}, g); t.textContent=m.name;
+  if(m.sub){ const s = el('text',{class:'s', x:m.x, y:m.y+12}, g); s.textContent=m.sub; }
+  /* 供电角标 */
+  if(m.supply && m.supply!=='—'){
+    const col = RAIL[m.supply.split('(')[0].trim()] || '#7a8794';
+    const tag = el('text',{class:'railtag', x:m.x+m.w/2-24, y:m.y-m.h/2+14, fill:col}, g);
+    tag.textContent = m.supply.split('(')[0].trim();
+  }
+  /* 状态角标 */
+  const st = el('text',{class:'railtag', x:m.x-m.w/2+18, y:m.y-m.h/2+14,
+    fill: m.status==='ok'?'#4fc08d':(m.status==='tbd'?'#e06c6c':'#7d8aa0')}, g);
+  st.textContent = m.status==='ok'?'●':(m.status==='tbd'?'⚑':'○');
+  /* 引脚柱与标签 */
+  const stubs = [];
+  if(m.kind==='mcu'){
+    const push=(arr,side)=>arr.forEach(p=>stubs.push({p, side}));
+    push(m.left,'L'); push(m.right,'R'); push(m.bottom,'B');
+  } else (m.pins||[]).forEach(p=>stubs.push({p:p.p, side:p.side, label:p.l, t:p.t}));
+  stubs.forEach(s=>{
+    const pos = stubPos(m.id, s.p); if(!pos) return;
+    const col = netColorFor(m.id, s.p);
+    el('rect',{x:pos.x-3.5, y:pos.y-3.5, width:7, height:7, fill:col, stroke:'#0e1319'}, g);
+    let lbl = s.label;
+    if(m.kind==='mcu'){
+      lbl = s.p;
+      if(pos.side==='B'){
+        /* 底边引脚名斜排到盒外，避免水平相邻标签重叠 */
+        const t2 = el('text',{class:'stub', x:pos.x-2, y:pos.y+18, 'text-anchor':'start',
+          transform:`rotate(42 ${pos.x-2} ${pos.y+18})`}, g);
+        t2.textContent = lbl;
+      } else {
+        const t2 = el('text',{class:'stub', x: pos.x + (pos.side==='L'?9:-9), y: pos.y+4,
+          'text-anchor': pos.side==='L'?'start':'end'}, g);
+        t2.textContent = lbl;
+      }
+    } else if(s.label){
+      const off = pos.side==='T'? -6 : (pos.side==='L'? -8 : 8);
+      const anch = pos.side==='T' ? 'middle' : (pos.side==='L'?'end':'start');
+      const tx = pos.side==='T'? pos.x : pos.x + off;
+      const ty = pos.side==='T'? pos.y-6 : pos.y+3.5;
+      const t2 = el('text',{class:'stub', x:tx, y:ty, 'text-anchor':anch}, g);
+      t2.textContent = s.label;
+    }
+    const hit = el('rect',{x:pos.x-14, y:pos.y-8, width:28, height:16, fill:'transparent'}, g);
+    hit.addEventListener('click', ev=>{ev.stopPropagation();
+      const net = NETS.find(nn => (nn.f.m===m.id&&nn.f.p===s.p)||(nn.t.m===m.id&&nn.t.p===s.p)
+        || (nn.drops||[]).some(d=>d.m===m.id&&d.p===s.p));
+      if(net) showNet(net.id); else showMod(m.id);
+    });
+  });
+  g.addEventListener('click', ev=>{ev.stopPropagation(); showMod(m.id);});
+  m.gEl=g;
+}
+
+/* 找某模块某引脚所属网络的颜色 */
+function netColorFor(modId, pinName){
+  const n = NETS.find(nn => (nn.f.m===modId&&nn.f.p===pinName)||(nn.t.m===modId&&nn.t.p===pinName)
+    || (nn.drops||[]).some(d=>d.m===modId&&d.p===pinName));
+  return n ? TYPE[n.type] : '#3a4656';
+}
+
+/* ---------- 高亮 ---------- */
+function hlNet(id){
+  NETS.forEach(n=>{
+    if(!n.paths) return;
+    n.paths.forEach(p=>p.classList.remove('hl','dim'));
+    if(n.lblEl) n.lblEl.classList.remove('hl');
+    if(id && n.id!==id){ n.paths.forEach(p=>p.classList.add('dim')); }
+    if(id && n.id===id){ n.paths.forEach(p=>p.classList.add('hl')); if(n.lblEl) n.lblEl.classList.add('hl'); }
+  });
+  MODS.forEach(m=>{
+    if(!m.gEl) return;
+    m.gEl.classList.remove('hl','dim');
+    if(id){
+      const n = NETS.find(nn=>nn.id===id);
+      const involved = n && ((n.f.m===m.id)||(n.t.m===m.id)||(n.drops||[]).some(d=>d.m===m.id));
+      if(!involved) m.gEl.classList.add('dim');
+    }
+  });
+}
+
+/* ---------- 侧栏 ---------- */
+const side = document.getElementById('side');
+function resetSide(){
+  side.innerHTML = `<div class="hint"><b>交互式硬件原理图 · 使用说明</b><br><br>
+   · 点击<b>模块框</b>：选型说明、供电、连接器、注意事项<br>
+   · 点击<b>导线/引脚柱</b>：查看这条电气网络的明细，全图高亮<br>
+   · 顶栏按钮：按信号类型过滤（CAN/串口/SPI…）<br>
+   · <span style="color:#e06c6c">⚑红框 = 引脚待冻结</span>，施工前必须先在 CubeMX 分配并回写文档<br>
+   · 顶部电源树可点击；各模块角标显示所属电源轨<br><br>
+   选型原则（已按要求）：<b>全部采用成品模块</b>——CAN 收发器、DC-DC、UBEC、电平转换、按键、传感器均用可整体更换的模块，少用分立搭电路。</div>`;
+}
+function headHtml(title, tags){
+  return `<h2>${title}</h2><div class="meta">${tags.map(t=>`<span class="tag ${t[1]}">${t[0]}</span>`).join('')}</div>`;
+}
+function showMod(id){
+  selMod=id; selNet=null;
+  MODS.forEach(m=>m.gEl&&m.gEl.classList.toggle('sel', m.id===id));
+  const m = MMAP[id];
+  const stTag = m.status==='ok'?['已定','ok']:m.status==='tbd'?['待冻结','tbd']:['规划','plan'];
+  let html = headHtml(m.name, [[m.kind==='mcu'?'主控':(m.type||''),''],stTag,
+    ...(m.supply&&m.supply!=='—'?[[m.supply,'ok']]:[])]);
+  html += `<div style="color:#bcc7d4">${m.desc||''}</div>`;
+  if(m.supply_note) html += `<h3>供电</h3><ul><li>${m.supply_note}</li></ul>`;
+  if(m.notes&&m.notes.length) html += `<h3>注意事项</h3><ul>${m.notes.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  if(m.conns) html += `<h3>连接器建议</h3><ul><li>${m.conns}</li></ul>`;
+  /* 相关网络 */
+  const nets = NETS.filter(n=>n.f.m===id||n.t.m===id||(n.drops||[]).some(d=>d.m===id));
+  if(nets.length){
+    html += `<h3>本模块信号（点击查看网络）</h3><table><tr><th>网络</th><th>类型</th><th>对端</th></tr>` +
+      nets.map(n=>{
+        const other = n.f.m===id ? `${MMAP[n.t.m]?MMAP[n.t.m].name:n.t.m}.${n.t.p}` : `${MMAP[n.f.m].name}.${n.f.p}`;
+        return `<tr><td><a data-net="${n.id}">${n.l||n.id}</a></td><td>${n.type}</td><td>${other}</td></tr>`;
+      }).join('') + `</table>`;
+  }
+  /* MCU 引脚全景 */
+  if(m.kind==='mcu'){
+    const row = (arr)=>arr.map(p=>`<td>${p.p}<br><span style="color:#7d8b9c">${p.l}</span></td>`).join('');
+    html += `<h3>引脚全景</h3><table><tr><th>左·通信</th></tr><tr>${row(m.left)}</tr></table>
+      <table style="margin-top:6px"><tr><th>右·扩展</th></tr><tr>${row(m.right)}</tr></table>
+      <table style="margin-top:6px"><tr><th>底·执行/人机/调试</th></tr><tr>${row(m.bottom)}</tr></table>`;
+  }
+  side.innerHTML = html;
+  side.querySelectorAll('[data-net]').forEach(a=>a.onclick=()=>showNet(a.dataset.net));
+}
+function showPower(id){
+  selMod=null; selNet=null;
+  MODS.forEach(m=>m.gEl&&m.gEl.classList.remove('sel'));
+  const p = PMAP[id];
+  /* 计算下游负载 */
+  let html = headHtml(p.name, [[p.supply,'ok'],['电源','']]);
+  html += `<div style="color:#bcc7d4">${p.desc}</div>`;
+  if(p.notes&&p.notes.length) html += `<h3>注意事项</h3><ul>${p.notes.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+  html += `<h3>轨下游负载</h3><ul>${railLoads(p.id)}</ul>`;
+  side.innerHTML = html;
+}
+function railLoads(pid){
+  const map = {
+    'bus22':['达妙 DM4310（XT30）','张大头35 ×2（XT30）','张大头 X42S ×4（XT30）'],
+    'dcdc12':['LED 补光灯'],
+    'dcdc6':['抓取舵机 DS3218','转盘舵机 360°'],
+    'dcdc5':['MaxiCAM #1','MaxiCAM #2','陶晶驰串口屏'],
+    'ldo':['STM32H723 主控','IPS200 屏 + BLK','HWT101（按铭牌）','W25Q64','I2C 4.7kΩ 上拉'],
+    'fuse':['下级所有电源模块（见电源树）'],
+    'sw':['下级所有电源模块（见电源树）'],
+  };
+  const list = map[pid] || [];
+  return list.length? list.map(x=>`<li>${x}</li>`).join('') : '<li style="list-style:none;color:#7d8b9c">见模块说明</li>';
+}
+function showNet(id){
+  selNet=id; selMod=null;
+  MODS.forEach(m=>m.gEl&&m.gEl.classList.remove('sel'));
+  hlNet(id);
+  const n = NETS.find(x=>x.id===id);
+  const fm = MMAP[n.f.m], tm = MMAP[n.t.m];
+  let html = headHtml(n.l||n.id, [[n.type,''],[n.plan?'规划':'已接',n.plan?'plan':'ok']]);
+  html += `<table><tr><th></th><th>模块</th><th>引脚</th></tr>
+    <tr><td>起点</td><td>${fm.name}</td><td>${n.f.p}${fm.kind==='mcu'?'（'+(fm.left.concat(fm.right,fm.bottom).find(p=>p.p===n.f.p)||{l:''}).l+'）':''}</td></tr>
+    <tr><td>终点</td><td>${tm.name}</td><td>${n.t.p}</td></tr></table>`;
+  if(n.drops){
+    html += `<h3>总线下挂节点</h3><ul>${n.drops.map(d=>`<li>${MMAP[d.m].name} · ${d.p}</li>`).join('')}</ul>`;
+  }
+  /* 该类型走线共性 */
+  const tips = {
+    CAN:['H/L 双绞，节点手拉手；<b>仅总线末端闭合 120Ω 一处</b>','共地；远离电机动力线，避免平行长距离走线'],
+    UART:['交叉连接 TX→RX','共地；外部模块若为 5V TTL 必须加电平转换模块'],
+    SPI:['每从设备独立 CS#，空闲高电平','MISO 仅双向器件需要'],
+    I2C:['开漏总线必须外接上拉（4.7kΩ→3.3V）'],
+    PWM:['50Hz / 500~2500µs；信号线用浅色（橙白）线便于识别'],
+    KEY:['MCU 内部上拉，开关另一端接 GND，低电平有效'],
+    LED:['低电平点亮，串 330Ω'],
+    SWD:['4P：3.3V/GND/SWDIO/SWCLK；NRST 可选'],
+  };
+  if(tips[n.type]) html += `<h3>走线要点</h3><ul>${tips[n.type].map(t=>`<li>${t}</li>`).join('')}</ul>`;
+  side.innerHTML = html;
+}
+
+/* ---------- 类型过滤 ---------- */
+const fbox = document.getElementById('filters');
+TYPEFILTERS.forEach(([tid,name])=>{
+  const b = document.createElement('button');
+  b.className = 'fbtn' + (tid==='ALL'?' on':'');
+  b.textContent = name;
+  if(TYPE[tid]) b.style.borderColor = TYPE[tid];
+  b.onclick = ()=>{
+    curType = tid;
+    fbox.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    NETS.forEach(n=>{
+      if(!n.paths) return;
+      const show = tid==='ALL' || n.type===tid;
+      n.paths.forEach(p=>p.style.display = show? '':'none');
+      if(n.lblEl) n.lblEl.style.display = show? '':'none';
+    });
+    toast(tid==='ALL'?'显示全部网络':'只显示 '+name+' 类网络');
+  };
+  fbox.appendChild(b);
+});
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 1600);
+}
+
+/* ---------- 平移缩放 ---------- */
+function svgPoint(ev){
+  const r = svg.getBoundingClientRect();
+  return { x: vb.x + (ev.clientX-r.left)/r.width*vb.w,
+           y: vb.y + (ev.clientY-r.top)/r.height*vb.h };
+}
+svg.addEventListener('mousedown', ev=>{
+  if(ev.target.closest('.mod')||ev.target.closest('.net')||ev.target.closest('.stub')) return;
+  const start = {px:ev.clientX, py:ev.clientY, vx:vb.x, vy:vb.y};
+  svg.classList.add('dragging');
+  const mv = e=>{
+    const r = svg.getBoundingClientRect();
+    vb.x = start.vx - (e.clientX-start.px)*vb.w/r.width;
+    vb.y = start.vy - (e.clientY-start.py)*vb.h/r.height;
+    applyVB();
+  };
+  const up = ()=>{ svg.classList.remove('dragging'); window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); };
+  window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
+});
+svg.addEventListener('wheel', ev=>{
+  ev.preventDefault();
+  const r = svg.getBoundingClientRect();
+  const mx = vb.x + (ev.clientX-r.left)/r.width*vb.w;
+  const my = vb.y + (ev.clientY-r.top)/r.height*vb.h;
+  const k = ev.deltaY>0 ? 1.12 : 1/1.12;
+  const nw = Math.min(Math.max(vb.w*k, 300), 4600);
+  const s = nw/vb.w;
+  vb.x = mx-(mx-vb.x)*s; vb.y = my-(my-vb.y)*s; vb.w=nw; vb.h=vb.h*s;
+  applyVB();
+},{passive:false});
+svg.addEventListener('click', ev=>{
+  if(!ev.target.closest('.mod') && !ev.target.closest('.net') && !ev.target.closest('.stub')){ resetSide(); hlNet(null); }
+});
+document.getElementById('resetView').onclick = ()=>{ vb={x:380,y:330,w:1500,h:1125}; applyVB(); resetSide(); hlNet(null); };
+
+/* ---------- 图例 ---------- */
+document.getElementById('legend').innerHTML =
+  Object.entries(TYPE).map(([k,v])=>`<div class="row"><span class="ln" style="border-color:${v}"></span>${({CAN:'CAN 总线',UART:'串口 UART',SPI:'SPI',I2C:'I2C',PWM:'舵机 PWM',KEY:'按键输入',LED:'LED 指示',SWD:'调试 SWD'})[k]}</div>`).join('') +
+  `<div class="row"><span class="ln dash" style="border-color:#7a8794"></span>GND 共地（所有模块必须）</div>
+   <div class="row" style="color:#5d6b7d">拖动平移 · 滚轮缩放</div>
+   <div class="row" style="color:#e06c6c">⚑ = 引脚待冻结，禁施工</div>`;
+
+resetSide();
+build();
+</script>
+</body>
+</html>

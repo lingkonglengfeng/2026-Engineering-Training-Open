@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">智能搬运车双板接口草案 v0.1</title>
+  <desc id="desc">左侧电源板，右侧主控拓展板。XT60 电池输入；电机和舵机动力 XT30；5V 逻辑与信号使用 XH2.54，已装视觉座暂保留 PH2.0。</desc>
+  <defs>
+    <style>
+      text{font-family:'Microsoft YaHei','Noto Sans CJK SC',sans-serif;fill:#18304a}
+      .title{font-size:34px;font-weight:700}.sub{font-size:18px;fill:#53687e}.bh{font-size:26px;font-weight:700}.h{font-size:20px;font-weight:700}.body{font-size:16px}.small{font-size:14px;fill:#52657a}.tiny{font-size:13px;fill:#52657a}.tag{font-size:15px;font-weight:700}
+      .board{fill:#fff;stroke:#adc0d1;stroke-width:2}.card{fill:#f7fafd;stroke:#d6e2eb;stroke-width:1.5}.power{fill:#fff0e9;stroke:#eda78a;stroke-width:1.5}.logic{fill:#eaf3ff;stroke:#8cb8ec;stroke-width:1.5}.servo{fill:#fff5da;stroke:#e3c66d;stroke-width:1.5}.sig{fill:#eaf8f1;stroke:#8bcaa8;stroke-width:1.5}.linePower{stroke:#e37645;stroke-width:5;fill:none}.lineLogic{stroke:#4a8cdd;stroke-width:4;fill:none}.lineServo{stroke:#c79c24;stroke-width:5;fill:none}.lineSig{stroke:#4caa77;stroke-width:3;fill:none}.muted{stroke:#9aabba;stroke-width:2;fill:none;stroke-dasharray:6 6}
+    </style>
+    <marker id="arrowP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#e37645"/></marker>
+    <marker id="arrowL" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#4a8cdd"/></marker>
+    <marker id="arrowS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5 0 10z" fill="#c79c24"/></marker>
+  </defs>
+  <rect width="1600" height="1050" fill="#f1f5f9"/>
+  <text x="70" y="62" class="title">双板接口草案 <tspan fill="#5c7693">v0.1</tspan></text>
+  <text x="70" y="94" class="sub">电池 XT60 · 动力 XT30 · 逻辑/通信 XH2.54 · 视觉首版保留 PH2.0</text>
+
+  <rect x="35" y="395" width="170" height="102" rx="15" class="power"/>
+  <text x="59" y="429" class="h">6S 电池</text><text x="59" y="455" class="body">18–25.2V</text><text x="59" y="479" class="tag" fill="#af502f">XT60 / PWR-J1</text>
+  <path d="M205 446H245" class="linePower" marker-end="url(#arrowP)"/>
+
+  <rect x="250" y="145" width="540" height="750" rx="20" class="board"/>
+  <rect x="250" y="145" width="540" height="68" rx="20" fill="#ffe9df"/>
+  <rect x="250" y="190" width="540" height="23" fill="#ffe9df"/>
+  <text x="279" y="189" class="bh">① 电源板 PWR</text>
+  <rect x="277" y="233" width="486" height="91" rx="12" class="power"/>
+  <text x="297" y="262" class="h">入口保护与电池母线</text>
+  <text x="297" y="290" class="body">开关 · 保险 · 反接/浪涌保护 · 分支测试点</text>
+  <path d="M520 324V352" class="linePower" marker-end="url(#arrowP)"/>
+  <rect x="277" y="361" width="486" height="109" rx="12" class="power"/>
+  <text x="297" y="390" class="h">电机动力输出</text>
+  <text x="297" y="417" class="body">XT30 ×7 暂定：6 步进 + 1 达妙</text>
+  <text x="297" y="445" class="small">每台独立支路；不让多电机总电流挤过单个 XT30</text>
+  <rect x="277" y="492" width="228" height="125" rx="12" class="logic"/>
+  <text x="297" y="526" class="h">5V 逻辑 DC/DC</text>
+  <text x="297" y="555" class="body">独立稳压 · 负载待核算</text>
+  <text x="297" y="584" class="tag" fill="#2c6eb3">XH2.54-2P → CTRL</text>
+  <rect x="535" y="492" width="228" height="125" rx="12" class="servo"/>
+  <text x="555" y="526" class="h">舵机 DC/DC</text>
+  <text x="555" y="555" class="body">独立稳压 · EN 关断</text>
+  <text x="555" y="584" class="tag" fill="#9a7817">XT30 → CTRL</text>
+  <path d="M360 470V492" class="lineLogic"/><path d="M650 470V492" class="lineServo"/>
+  <rect x="277" y="640" width="486" height="213" rx="12" class="card"/>
+  <text x="297" y="674" class="h">板上布局重点</text>
+  <text x="297" y="706" class="body">· 电机电流沿动力铜箔与专用回线返回</text>
+  <text x="297" y="737" class="body">· 5V 与舵机电源分别取自电池母线</text>
+  <text x="297" y="768" class="body">· 舵机 EN 默认关闭，急停可断执行器</text>
+  <text x="297" y="799" class="body">· 5V 转换器须覆盖低电量与启动压降</text>
+  <text x="297" y="829" class="small">当前 URB4805 输入下限 18V，电池截止也规划为 18V</text>
+
+  <rect x="935" y="145" width="620" height="750" rx="20" class="board"/>
+  <rect x="935" y="145" width="620" height="68" rx="20" fill="#e7f2ff"/>
+  <rect x="935" y="190" width="620" height="23" fill="#e7f2ff"/>
+  <text x="964" y="189" class="bh">② 主控拓展板 CTRL</text>
+  <rect x="962" y="233" width="566" height="95" rx="12" class="logic"/>
+  <text x="982" y="264" class="h">5V 入口 → 唯一 3.3V 稳压 → 核心板</text>
+  <text x="982" y="294" class="body">核心板 2×30P · W25Q64 · IPS200 · SWD</text>
+  <rect x="962" y="347" width="566" height="103" rx="12" class="servo"/>
+  <text x="982" y="380" class="h">舵机动力区：XT30 入 → 两路舵机座</text>
+  <text x="982" y="409" class="body">PD12 / PD13 PWM；动力回流走专用铜箔到 XT30</text>
+  <text x="982" y="434" class="small">3P 座额定电流按舵机堵转实测选；入口需过压切断</text>
+  <rect x="962" y="469" width="268" height="154" rx="12" class="sig"/>
+  <text x="982" y="500" class="h">CAN 收发器 A / 达妙</text>
+  <text x="982" y="530" class="body">PA12 TX · PA11 RX</text>
+  <text x="982" y="558" class="body">1 Mbit/s · XH 3P</text>
+  <text x="982" y="591" class="small">GND / CANH / CANL</text>
+  <rect x="1260" y="469" width="268" height="154" rx="12" class="sig"/>
+  <text x="1280" y="500" class="h">CAN 收发器 B / 步进</text>
+  <text x="1280" y="530" class="body">PB13 TX · PB12 RX</text>
+  <text x="1280" y="558" class="body">500 kbit/s · XH 3P</text>
+  <text x="1280" y="591" class="small">六台共总线，短支线</text>
+  <rect x="962" y="643" width="566" height="210" rx="12" class="card"/>
+  <text x="982" y="674" class="h">统一的信号与模块插座</text>
+  <text x="982" y="707" class="body">XH2.54：HWT101 / 屏幕 / I2C / UART4</text>
+  <text x="982" y="738" class="body">XH2.54：START / STOP / 补光 / 传感器预留</text>
+  <text x="982" y="769" class="body">PH2.0-4P：视觉 #1、#2，首版保留旧线束</text>
+  <text x="982" y="804" class="small">每个座丝印电压、信号、1 脚；传感器 GPIO 待冻结</text>
+
+  <path d="M790 555H934" class="lineLogic" marker-end="url(#arrowL)"/>
+  <text x="796" y="543" class="tag" fill="#2c6eb3">5V / GND</text>
+  <path d="M790 605H858V399H934" class="lineServo" marker-end="url(#arrowS)"/>
+  <text x="801" y="621" class="tag" fill="#9a7817">SERVO_V / GND</text>
+
+  <rect x="55" y="935" width="1490" height="84" rx="13" fill="#fff" stroke="#d6e2eb"/>
+  <text x="80" y="967" class="h">复位风险控制</text>
+  <text x="80" y="997" class="body">舵机与 MCU 分别稳压、分别走供电与回流；电池最低电压和同时启动压降必须实测。两块板本身不会自动隔离供电干扰。</text>
+</svg>

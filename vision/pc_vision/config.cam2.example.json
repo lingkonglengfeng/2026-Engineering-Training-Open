@@ -1,0 +1,8 @@
+{
+  "camera_role": "qr",
+  "host": "",
+  "video_port": 9000,
+  "control_port": 9001,
+  "calibration_file": "calibration.cam2.json",
+  "reconnect_seconds": 2.0
+}

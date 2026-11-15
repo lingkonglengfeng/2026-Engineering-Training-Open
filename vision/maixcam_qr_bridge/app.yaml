@@ -1,0 +1,8 @@
+id: cam2_pc_bridge
+name: 工训CAM2扫码与障碍桥接
+version: 1.4.1
+author: 凌空冷风
+icon: app.png
+desc: CAM2 640x480图传、扫码任务码及视觉障碍串口桥接
+files:
+  - main.py

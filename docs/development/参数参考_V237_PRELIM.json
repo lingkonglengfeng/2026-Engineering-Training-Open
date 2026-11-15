@@ -1,0 +1,18 @@
+{
+  "description": "初赛V237机械臂历史参数参考；非实时W25备份，不自动加载",
+  "source_log": "vision/pc_vision/logs/2026-10-30/serial/20261030_232630_144096_COM10_idle.log",
+  "source_timestamp": "2026-10-30T23:27:35+08:00",
+  "axes_deg": ["lift5", "reach6", "dm"],
+  "servo_presets_deg": {"open": 225, "close": 308, "table": [19, 109, 199]},
+  "ring_bases_deg": [
+    [-1032.6204, -545.2084, 41.3044],
+    [-1032.6204, -212.0919, 4.6040],
+    [-1032.6204, -290.4869, -39.5218]
+  ],
+  "rough_and_temp_shared_ring_deltas_deg": [
+    [0, 5.9, -1.7], [0, 0, -1.2], [0, -5.59, -0.723]
+  ],
+  "w25_banks_8mb_hex": ["0x7F8000", "0x7F9000"],
+  "independent_disc_pose_storage": false,
+  "note": "初赛没有决赛四姿态独立微调记录；运动基准以初赛源码为准。视觉配置另存，PID/导航仍为两套代码共用的W25区域。"
+}
